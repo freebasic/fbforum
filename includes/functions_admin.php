@@ -3101,9 +3101,9 @@ function get_database_size()
 			{
 				$version = $row['mysql_version'];
 
-				if (preg_match('#(3\.23|[45]\.)#', $version))
+				if (preg_match('#(3\.23|[45]\.|10\.[0-9]\.[0-9]{1,2}-+Maria)#', $version))
 				{
-					$db_name = (preg_match('#^(?:3\.23\.(?:[6-9]|[1-9]{2}))|[45]\.#', $version)) ? "`{$db->get_db_name()}`" : $db->get_db_name();
+					$db_name = (preg_match('#^(?:3\.23\.(?:[6-9]|[1-9]{2}))|[45]\.|10\.[0-9]\.[0-9]{1,2}-+Maria#', $version)) ? "`{$db->get_db_name()}`" : $db->get_db_name();
 
 					$sql = 'SHOW TABLE STATUS
 						FROM ' . $db_name;
@@ -3112,7 +3112,7 @@ function get_database_size()
 					$database_size = 0;
 					while ($row = $db->sql_fetchrow($result))
 					{
-						if ((isset($row['Type']) && $row['Type'] != 'MRG_MyISAM') || (isset($row['Engine']) && ($row['Engine'] == 'MyISAM' || $row['Engine'] == 'InnoDB')))
+						if ((isset($row['Type']) && $row['Type'] != 'MRG_MyISAM') || (isset($row['Engine']) && ($row['Engine'] == 'MyISAM' || $row['Engine'] == 'InnoDB' || $row['Engine'] == 'Aria')))
 						{
 							if ($table_prefix != '')
 							{
@@ -3320,17 +3320,46 @@ function tidy_database()
 */
 function add_permission_language()
 {
-	global $user, $phpEx, $phpbb_extension_manager;
+	global $config, $user, $phpEx, $phpbb_extension_manager;
 
 	// add permission language files from extensions
 	$finder = $phpbb_extension_manager->get_finder();
 
-	$lang_files = $finder
+	// We grab the language files from the default, English and user's language.
+	// So we can fall back to the other files like we do when using add_lang()
+	$default_lang_files = $english_lang_files = $user_lang_files = array();
+
+	// Search for board default language if it's not the user language
+	if ($config['default_lang'] != $user->lang_name)
+	{
+		$default_lang_files = $finder
+			->prefix('permissions_')
+			->suffix(".$phpEx")
+			->core_path('language/' . basename($config['default_lang']) . '/')
+			->extension_directory('/language/' . basename($config['default_lang']))
+			->find();
+	}
+
+	// Search for english, if its not the default or user language
+	if ($config['default_lang'] != 'en' && $user->lang_name != 'en')
+	{
+		$english_lang_files = $finder
+			->prefix('permissions_')
+			->suffix(".$phpEx")
+			->core_path('language/en/')
+			->extension_directory('/language/en')
+			->find();
+	}
+
+	// Find files in the user's language
+	$user_lang_files = $finder
 		->prefix('permissions_')
 		->suffix(".$phpEx")
 		->core_path('language/' . $user->lang_name . '/')
 		->extension_directory('/language/' . $user->lang_name)
 		->find();
+
+	$lang_files = array_merge($english_lang_files, $default_lang_files, $user_lang_files);
 
 	foreach ($lang_files as $lang_file => $ext_name)
 	{

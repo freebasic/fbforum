@@ -1587,7 +1587,7 @@ class acp_users
 				if ($submit)
 				{
 					$error = validate_data($data, array(
-						'dateformat'	=> array('string', false, 1, 30),
+						'dateformat'	=> array('string', false, 1, 64),
 						'lang'			=> array('match', false, '#^[a-z_\-]{2,}$#i'),
 						'tz'			=> array('timezone'),
 
@@ -1809,10 +1809,11 @@ class acp_users
 			case 'avatar':
 
 				$avatars_enabled = false;
+				/** @var \phpbb\avatar\manager $phpbb_avatar_manager */
+				$phpbb_avatar_manager = $phpbb_container->get('avatar.manager');
 
 				if ($config['allow_avatar'])
 				{
-					$phpbb_avatar_manager = $phpbb_container->get('avatar.manager');
 					$avatar_drivers = $phpbb_avatar_manager->get_enabled_drivers();
 
 					// This is normalised data, without the user_ prefix
@@ -1873,14 +1874,21 @@ class acp_users
 
 					$selected_driver = $phpbb_avatar_manager->clean_driver_name($request->variable('avatar_driver', $user_row['user_avatar_type']));
 
+					// Assign min and max values before generating avatar driver html
+					$template->assign_vars(array(
+						'AVATAR_MIN_WIDTH'		=> $config['avatar_min_width'],
+						'AVATAR_MAX_WIDTH'		=> $config['avatar_max_width'],
+						'AVATAR_MIN_HEIGHT'		=> $config['avatar_min_height'],
+						'AVATAR_MAX_HEIGHT'		=> $config['avatar_max_height'],
+					));
+
 					foreach ($avatar_drivers as $current_driver)
 					{
 						$driver = $phpbb_avatar_manager->get_driver($current_driver);
 
 						$avatars_enabled = true;
-						$config_name = $phpbb_avatar_manager->get_driver_config_name($driver);
 						$template->set_filenames(array(
-							'avatar' => "acp_avatar_options_{$config_name}.html",
+							'avatar' => $driver->get_acp_template_name(),
 						));
 
 						if ($driver->prepare_form($request, $template, $user, $avatar_data, $error))
@@ -1900,8 +1908,12 @@ class acp_users
 					}
 				}
 
-				// Replace "error" strings with their real, localised form
-				$error = $phpbb_avatar_manager->localize_errors($user, $error);
+				// Avatar manager is not initialized if avatars are disabled
+				if (isset($phpbb_avatar_manager))
+				{
+					// Replace "error" strings with their real, localised form
+					$error = $phpbb_avatar_manager->localize_errors($user, $error);
+				}
 
 				$avatar = phpbb_get_user_avatar($user_row, 'USER_AVATAR', true);
 
