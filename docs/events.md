@@ -991,6 +991,22 @@ memberlist_view_contact_before
 * Since: 3.1.0-b2
 * Purpose: Add content before the user contact part of any user profile
 
+memberlist_view_contact_custom_fields_after
+===
+* Locations:
+    + styles/prosilver/template/memberlist_view.html
+    + styles/subsilver2/template/memberlist_view.html
+* Since: 3.1.9-RC1
+* Purpose: Add content after the user contact related custom fields
+
+memberlist_view_contact_custom_fields_before
+===
+* Locations:
+    + styles/prosilver/template/memberlist_view.html
+    + styles/subsilver2/template/memberlist_view.html
+* Since: 3.1.9-RC1
+* Purpose: Add content before the user contact related custom fields
+
 memberlist_view_content_append
 ===
 * Locations:
@@ -1006,6 +1022,22 @@ memberlist_view_content_prepend
     + styles/subsilver2/template/memberlist_view.html
 * Since: 3.1.0-b3
 * Purpose: Add custom content to the user profile view before the main content
+
+memberlist_view_non_contact_custom_fields_after
+===
+* Locations:
+    + styles/prosilver/template/memberlist_view.html
+    + styles/subsilver2/template/memberlist_view.html
+* Since: 3.1.9-RC1
+* Purpose: Add content after the user not contact related custom fields
+
+memberlist_view_non_contact_custom_fields_before
+===
+* Locations:
+    + styles/prosilver/template/memberlist_view.html
+    + styles/subsilver2/template/memberlist_view.html
+* Since: 3.1.9-RC1
+* Purpose: Add content before the user not contact related custom fields
 
 memberlist_view_rank_after
 ===
@@ -1065,6 +1097,22 @@ memberlist_view_user_statistics_before
 * Since: 3.1.0-a1
 * Purpose: Add entries before the user statistics part of any user profile
 
+memberlist_view_zebra_after
+===
+* Locations:
+    + styles/prosilver/template/memberlist_view.html
+    + styles/subsilver2/template/memberlist_view.html
+* Since: 3.1.9-RC1
+* Purpose: Add content after the user friends/foes links
+
+memberlist_view_zebra_before
+===
+* Locations:
+    + styles/prosilver/template/memberlist_view.html
+    + styles/subsilver2/template/memberlist_view.html
+* Since: 3.1.9-RC1
+* Purpose: Add content before the user friends/foes links
+
 navbar_header_logged_out_content
 ===
 * Locations:
@@ -1099,6 +1147,20 @@ navbar_header_quick_links_before
     + styles/prosilver/template/navbar_header.html
 * Since: 3.1.0-RC2
 * Purpose: Add links to the top of the quick-links drop-down menu in the header
+
+navbar_header_user_profile_append
+===
+* Locations:
+    + styles/prosilver/template/navbar_header.html
+* Since: 3.1.8-RC1
+* Purpose: Add links to the right of the user drop down area
+
+navbar_header_user_profile_prepend
+===
+* Locations:
+    + styles/prosilver/template/navbar_header.html
+* Since: 3.1.8-RC1
+* Purpose: Add links to the left of the notification area
 
 navbar_header_username_append
 ===
@@ -2440,6 +2502,38 @@ viewtopic_body_post_subject_before
     + styles/subsilver2/template/viewtopic_body.html
 * Since: 3.1.7-RC1
 * Purpose: Add data before post icon and subject
+
+viewtopic_body_postrow_back2top_after
+===
+* Locations:
+    + styles/prosilver/template/viewtopic_body.html
+    + styles/subsilver2/template/viewtopic_body.html
+* Since: 3.1.8-RC1
+* Purpose: Add content to the post's bottom after the back to top link 
+
+viewtopic_body_postrow_back2top_append
+===
+* Locations:
+    + styles/prosilver/template/viewtopic_body.html
+    + styles/subsilver2/template/viewtopic_body.html
+* Since: 3.1.8-RC1
+* Purpose: Add content to the post's bottom directly after the back to top link 
+
+viewtopic_body_postrow_back2top_before
+===
+* Locations:
+    + styles/prosilver/template/viewtopic_body.html
+    + styles/subsilver2/template/viewtopic_body.html
+* Since: 3.1.8-RC1
+* Purpose: Add content to the post's bottom before the back to top link 
+
+viewtopic_body_postrow_back2top_prepend
+===
+* Locations:
+    + styles/prosilver/template/viewtopic_body.html
+    + styles/subsilver2/template/viewtopic_body.html
+* Since: 3.1.8-RC1
+* Purpose: Add content to the post's bottom directly before the back to top link 
 
 viewtopic_body_postrow_custom_fields_after
 ===
