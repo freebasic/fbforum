@@ -20,15 +20,16 @@
 */
 @import "custom_config";
 @import "style_config";
-@import "common";
-@import "links";
-@import "content";
-@import "buttons";
-@import "cp";
-@import "forms";
-@import "imageset";
-@media (max-width: 700px) {
-	@import "responsive";
-}
+@import "common/common";
+@import "common/links";
+@import "common/content";
+@import "common/buttons";
+@import "common/cp";
+@import "common/forms";
+@import "common/imageset";
+@import "common/responsive";
 @import "colours";
 @import "custom";
+@import "common/icons";
+@import "common/normalize";
+@import "common/utilities";

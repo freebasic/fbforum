@@ -1,0 +1,7 @@
+/* Style Sheet Tweaks
+
+These style definitions are IE 8 & 9 only.
+They are required due to the poor CSS support in IE browsers.
+------------------------------------------------------------------------------*/
+
+@import "../../basic/theme/tweaks.css";
