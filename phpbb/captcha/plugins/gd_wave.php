@@ -33,9 +33,9 @@ class gd_wave extends captcha_abstract
 		return '\\phpbb\\captcha\\gd_wave';
 	}
 
-	function acp_page($id, &$module)
+	function acp_page($id, $module)
 	{
-		global $config, $db, $template, $user;
+		global $user;
 
 		trigger_error($user->lang['CAPTCHA_NO_OPTIONS'] . adm_back_link($module->u_action));
 	}

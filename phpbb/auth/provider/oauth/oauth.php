@@ -63,6 +63,13 @@ class oauth extends \phpbb\auth\provider\base
 	protected $auth_provider_oauth_token_storage_table;
 
 	/**
+	* OAuth state table
+	*
+	* @var string
+	*/
+	protected $auth_provider_oauth_state_table;
+
+	/**
 	* OAuth account association table
 	*
 	* @var string
@@ -98,6 +105,13 @@ class oauth extends \phpbb\auth\provider\base
 	protected $phpbb_container;
 
 	/**
+	* phpBB event dispatcher
+	*
+	* @var \phpbb\event\dispatcher_interface
+	*/
+	protected $dispatcher;
+
+	/**
 	* phpBB root path
 	*
 	* @var string
@@ -120,14 +134,16 @@ class oauth extends \phpbb\auth\provider\base
 	* @param	\phpbb\request\request_interface	$request
 	* @param	\phpbb\user		$user
 	* @param	string			$auth_provider_oauth_token_storage_table
+	* @param	string			$auth_provider_oauth_state_table
 	* @param	string			$auth_provider_oauth_token_account_assoc
 	* @param	\phpbb\di\service_collection	$service_providers Contains \phpbb\auth\provider\oauth\service_interface
 	* @param	string			$users_table
 	* @param	\Symfony\Component\DependencyInjection\ContainerInterface $phpbb_container DI container
+	* @param	\phpbb\event\dispatcher_interface $dispatcher phpBB event dispatcher
 	* @param	string			$phpbb_root_path
 	* @param	string			$php_ext
 	*/
-	public function __construct(\phpbb\db\driver\driver_interface $db, \phpbb\config\config $config, \phpbb\passwords\manager $passwords_manager, \phpbb\request\request_interface $request, \phpbb\user $user, $auth_provider_oauth_token_storage_table, $auth_provider_oauth_token_account_assoc, \phpbb\di\service_collection $service_providers, $users_table, \Symfony\Component\DependencyInjection\ContainerInterface $phpbb_container, $phpbb_root_path, $php_ext)
+	public function __construct(\phpbb\db\driver\driver_interface $db, \phpbb\config\config $config, \phpbb\passwords\manager $passwords_manager, \phpbb\request\request_interface $request, \phpbb\user $user, $auth_provider_oauth_token_storage_table, $auth_provider_oauth_state_table, $auth_provider_oauth_token_account_assoc, \phpbb\di\service_collection $service_providers, $users_table, \Symfony\Component\DependencyInjection\ContainerInterface $phpbb_container, \phpbb\event\dispatcher_interface $dispatcher, $phpbb_root_path, $php_ext)
 	{
 		$this->db = $db;
 		$this->config = $config;
@@ -135,10 +151,12 @@ class oauth extends \phpbb\auth\provider\base
 		$this->request = $request;
 		$this->user = $user;
 		$this->auth_provider_oauth_token_storage_table = $auth_provider_oauth_token_storage_table;
+		$this->auth_provider_oauth_state_table = $auth_provider_oauth_state_table;
 		$this->auth_provider_oauth_token_account_assoc = $auth_provider_oauth_token_account_assoc;
 		$this->service_providers = $service_providers;
 		$this->users_table = $users_table;
 		$this->phpbb_container = $phpbb_container;
+		$this->dispatcher = $dispatcher;
 		$this->phpbb_root_path = $phpbb_root_path;
 		$this->php_ext = $php_ext;
 	}
@@ -173,7 +191,7 @@ class oauth extends \phpbb\auth\provider\base
 			return $provider->login($username, $password);
 		}
 
-		// Requst the name of the OAuth service
+		// Request the name of the OAuth service
 		$service_name_original = $this->request->variable('oauth_service', '', false);
 		$service_name = 'auth.provider.oauth.service.' . strtolower($service_name_original);
 		if ($service_name_original === '' || !array_key_exists($service_name, $this->service_providers))
@@ -188,11 +206,12 @@ class oauth extends \phpbb\auth\provider\base
 		// Get the service credentials for the given service
 		$service_credentials = $this->service_providers[$service_name]->get_service_credentials();
 
-		$storage = new \phpbb\auth\provider\oauth\token_storage($this->db, $this->user, $this->auth_provider_oauth_token_storage_table);
+		$storage = new \phpbb\auth\provider\oauth\token_storage($this->db, $this->user, $this->auth_provider_oauth_token_storage_table, $this->auth_provider_oauth_state_table);
 		$query = 'mode=login&login=external&oauth_service=' . $service_name_original;
 		$service = $this->get_service($service_name_original, $storage, $service_credentials, $query, $this->service_providers[$service_name]->get_auth_scope());
 
-		if ($this->request->is_set('code', \phpbb\request\request_interface::GET))
+		if (($service::OAUTH_VERSION === 2 && $this->request->is_set('code', \phpbb\request\request_interface::GET))
+			|| ($service::OAUTH_VERSION === 1 && $this->request->is_set('oauth_token', \phpbb\request\request_interface::GET)))
 		{
 			$this->service_providers[$service_name]->set_external_service_provider($service);
 			$unique_id = $this->service_providers[$service_name]->perform_auth_login();
@@ -202,11 +221,36 @@ class oauth extends \phpbb\auth\provider\base
 				'provider'	=> $service_name_original,
 				'oauth_provider_id'	=> $unique_id
 			);
+
 			$sql = 'SELECT user_id FROM ' . $this->auth_provider_oauth_token_account_assoc . '
 				WHERE ' . $this->db->sql_build_array('SELECT', $data);
 			$result = $this->db->sql_query($sql);
 			$row = $this->db->sql_fetchrow($result);
 			$this->db->sql_freeresult($result);
+
+			$redirect_data = array(
+				'auth_provider'				=> 'oauth',
+				'login_link_oauth_service'	=> $service_name_original,
+			);
+
+			/**
+			* Event is triggered before check if provider is already associated with an account
+			*
+			* @event core.oauth_login_after_check_if_provider_id_has_match
+			* @var	array									row				User row
+			* @var	array									data			Provider data
+			* @var	array									redirect_data	Data to be appended to the redirect url
+			* @var	\OAuth\Common\Service\ServiceInterface	service			OAuth service
+			* @since 3.2.3-RC1
+			* @changed 3.2.6-RC1 Added redirect_data
+			*/
+			$vars = array(
+				'row',
+				'data',
+				'redirect_data',
+				'service',
+			);
+			extract($this->dispatcher->trigger_event('core.oauth_login_after_check_if_provider_id_has_match', compact($vars)));
 
 			if (!$row)
 			{
@@ -215,15 +259,12 @@ class oauth extends \phpbb\auth\provider\base
 					'status'		=> LOGIN_SUCCESS_LINK_PROFILE,
 					'error_msg'		=> 'LOGIN_OAUTH_ACCOUNT_NOT_LINKED',
 					'user_row'		=> array(),
-					'redirect_data'	=> array(
-						'auth_provider'				=> 'oauth',
-						'login_link_oauth_service'	=> $service_name_original,
-					),
+					'redirect_data'	=> $redirect_data,
 				);
 			}
 
 			// Retrieve the user's account
-			$sql = 'SELECT user_id, username, user_password, user_passchg, user_email, user_type, user_login_attempts
+			$sql = 'SELECT user_id, username, user_password, user_passchg, user_email, user_ip, user_type, user_login_attempts
 				FROM ' . $this->users_table . '
 					WHERE user_id = ' . (int) $row['user_id'];
 			$result = $this->db->sql_query($sql);
@@ -235,8 +276,45 @@ class oauth extends \phpbb\auth\provider\base
 				throw new \Exception('AUTH_PROVIDER_OAUTH_ERROR_INVALID_ENTRY');
 			}
 
+			/**
+			 * Check if the user is banned.
+			 * The fourth parameter, return, has to be true,
+			 * otherwise the OAuth login is still called and
+			 * an uncaught exception is thrown as there is no
+			 * token stored in the database.
+			 */
+			$ban = $this->user->check_ban($row['user_id'], $row['user_ip'], $row['user_email'], true);
+			if (!empty($ban))
+			{
+				$till_date = !empty($ban['ban_end']) ? $this->user->format_date($ban['ban_end']) : '';
+				$message = !empty($ban['ban_end']) ? 'BOARD_BAN_TIME' : 'BOARD_BAN_PERM';
+
+				$contact_link = phpbb_get_board_contact_link($this->config, $this->phpbb_root_path, $this->php_ext);
+				$message = $this->user->lang($message, $till_date, '<a href="' . $contact_link . '">', '</a>');
+				$message .= !empty($ban['ban_give_reason']) ? '<br /><br />' . $this->user->lang('BOARD_BAN_REASON', $ban['ban_give_reason']) : '';
+				$message .= !empty($ban['ban_triggered_by']) ? '<br /><br /><em>' . $this->user->lang('BAN_TRIGGERED_BY_' . strtoupper($ban['ban_triggered_by'])) . '</em>' : '';
+
+				return array(
+					'status'	=> LOGIN_BREAK,
+					'error_msg'	=> $message,
+					'user_row'	=> $row,
+				);
+			}
+
 			// Update token storage to store the user_id
 			$storage->set_user_id($row['user_id']);
+
+			/**
+			* Event is triggered after user is successfully logged in via OAuth.
+			*
+			* @event core.auth_oauth_login_after
+			* @var    array    row    User row
+			* @since 3.1.11-RC1
+			*/
+			$vars = array(
+				'row',
+			);
+			extract($this->dispatcher->trigger_event('core.auth_oauth_login_after', compact($vars)));
 
 			// The user is now authenticated and can be logged in
 			return array(
@@ -247,7 +325,15 @@ class oauth extends \phpbb\auth\provider\base
 		}
 		else
 		{
-			$url = $service->getAuthorizationUri();
+			if ($service::OAUTH_VERSION === 1)
+			{
+				$token = $service->requestRequestToken();
+				$url = $service->getAuthorizationUri(array('oauth_token' => $token->getRequestToken()));
+			}
+			else
+			{
+				$url = $service->getAuthorizationUri();
+			}
 			header('Location: ' . $url);
 		}
 	}
@@ -337,7 +423,7 @@ class oauth extends \phpbb\auth\provider\base
 			if ($credentials['key'] && $credentials['secret'])
 			{
 				$actual_name = str_replace('auth.provider.oauth.service.', '', $service_name);
-				$redirect_url = build_url(false) . '&login=external&oauth_service=' . $actual_name;
+				$redirect_url = generate_board_url() . '/ucp.' . $this->php_ext . '?mode=login&login=external&oauth_service=' . $actual_name;
 				$login_data['BLOCK_VARS'][$service_name] = array(
 					'REDIRECT_URL'	=> redirect($redirect_url, true),
 					'SERVICE_NAME'	=> $this->user->lang['AUTH_PROVIDER_OAUTH_SERVICE_' . strtoupper($actual_name)],
@@ -462,7 +548,7 @@ class oauth extends \phpbb\auth\provider\base
 	*/
 	protected function link_account_login_link(array $link_data, $service_name)
 	{
-		$storage = new \phpbb\auth\provider\oauth\token_storage($this->db, $this->user, $this->auth_provider_oauth_token_storage_table);
+		$storage = new \phpbb\auth\provider\oauth\token_storage($this->db, $this->user, $this->auth_provider_oauth_token_storage_table, $this->auth_provider_oauth_state_table);
 
 		// Check for an access token, they should have one
 		if (!$storage->has_access_token_by_session($service_name))
@@ -505,13 +591,14 @@ class oauth extends \phpbb\auth\provider\base
 	*/
 	protected function link_account_auth_link(array $link_data, $service_name)
 	{
-		$storage = new \phpbb\auth\provider\oauth\token_storage($this->db, $this->user, $this->auth_provider_oauth_token_storage_table);
+		$storage = new \phpbb\auth\provider\oauth\token_storage($this->db, $this->user, $this->auth_provider_oauth_token_storage_table, $this->auth_provider_oauth_state_table);
 		$query = 'i=ucp_auth_link&mode=auth_link&link=1&oauth_service=' . strtolower($link_data['oauth_service']);
 		$service_credentials = $this->service_providers[$service_name]->get_service_credentials();
 		$scopes = $this->service_providers[$service_name]->get_auth_scope();
 		$service = $this->get_service(strtolower($link_data['oauth_service']), $storage, $service_credentials, $query, $scopes);
 
-		if ($this->request->is_set('code', \phpbb\request\request_interface::GET))
+		if (($service::OAUTH_VERSION === 2 && $this->request->is_set('code', \phpbb\request\request_interface::GET))
+			|| ($service::OAUTH_VERSION === 1 && $this->request->is_set('oauth_token', \phpbb\request\request_interface::GET)))
 		{
 			$this->service_providers[$service_name]->set_external_service_provider($service);
 			$unique_id = $this->service_providers[$service_name]->perform_auth_login();
@@ -527,7 +614,15 @@ class oauth extends \phpbb\auth\provider\base
 		}
 		else
 		{
-			$url = $service->getAuthorizationUri();
+			if ($service::OAUTH_VERSION === 1)
+			{
+				$token = $service->requestRequestToken();
+				$url = $service->getAuthorizationUri(array('oauth_token' => $token->getRequestToken()));
+			}
+			else
+			{
+				$url = $service->getAuthorizationUri();
+			}
 			header('Location: ' . $url);
 		}
 	}
@@ -539,9 +634,36 @@ class oauth extends \phpbb\auth\provider\base
 	*/
 	protected function link_account_perform_link(array $data)
 	{
+		// Check if the external account is already associated with other user
+		$sql = 'SELECT user_id
+			FROM ' . $this->auth_provider_oauth_token_account_assoc . "
+			WHERE provider = '" . $this->db->sql_escape($data['provider']) . "'
+				AND oauth_provider_id = '" . $this->db->sql_escape($data['oauth_provider_id']) . "'";
+		$result = $this->db->sql_query($sql);
+		$row = $this->db->sql_fetchrow($result);
+		$this->db->sql_freeresult($result);
+
+		if ($row)
+		{
+			trigger_error('AUTH_PROVIDER_OAUTH_ERROR_ALREADY_LINKED');
+		}
+
+		// Link account
 		$sql = 'INSERT INTO ' . $this->auth_provider_oauth_token_account_assoc . '
 			' . $this->db->sql_build_array('INSERT', $data);
 		$this->db->sql_query($sql);
+
+		/**
+		 * Event is triggered after user links account.
+		 *
+		 * @event core.auth_oauth_link_after
+		 * @var    array    data    User row
+		 * @since 3.1.11-RC1
+		 */
+		$vars = array(
+			'data',
+		);
+		extract($this->dispatcher->trigger_event('core.auth_oauth_link_after', compact($vars)));
 	}
 
 	/**
@@ -550,7 +672,7 @@ class oauth extends \phpbb\auth\provider\base
 	public function logout($data, $new_session)
 	{
 		// Clear all tokens belonging to the user
-		$storage = new \phpbb\auth\provider\oauth\token_storage($this->db, $this->user, $this->auth_provider_oauth_token_storage_table);
+		$storage = new \phpbb\auth\provider\oauth\token_storage($this->db, $this->user, $this->auth_provider_oauth_token_storage_table, $this->auth_provider_oauth_state_table);
 		$storage->clearAllTokens();
 
 		return;
@@ -575,7 +697,7 @@ class oauth extends \phpbb\auth\provider\base
 
 		$oauth_user_ids = array();
 
-		if ($rows !== false && sizeof($rows))
+		if ($rows !== false && count($rows))
 		{
 			foreach ($rows as $row)
 			{
@@ -598,6 +720,7 @@ class oauth extends \phpbb\auth\provider\base
 						'oauth_service' => $actual_name,
 					),
 
+					'SERVICE_ID'	=> $actual_name,
 					'SERVICE_NAME'	=> $this->user->lang['AUTH_PROVIDER_OAUTH_SERVICE_' . strtoupper($actual_name)],
 					'UNIQUE_ID'		=> (isset($oauth_user_ids[$actual_name])) ? $oauth_user_ids[$actual_name] : null,
 				);
@@ -631,9 +754,9 @@ class oauth extends \phpbb\auth\provider\base
 				AND user_id = " . (int) $user_id;
 		$this->db->sql_query($sql);
 
-		// Clear all tokens belonging to the user on this servce
+		// Clear all tokens belonging to the user on this service
 		$service_name = 'auth.provider.oauth.service.' . strtolower($link_data['oauth_service']);
-		$storage = new \phpbb\auth\provider\oauth\token_storage($this->db, $this->user, $this->auth_provider_oauth_token_storage_table);
+		$storage = new \phpbb\auth\provider\oauth\token_storage($this->db, $this->user, $this->auth_provider_oauth_token_storage_table, $this->auth_provider_oauth_state_table);
 		$storage->clearToken($service_name);
 	}
 }

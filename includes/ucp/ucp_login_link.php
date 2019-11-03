@@ -39,7 +39,7 @@ class ucp_login_link
 	*/
 	function main($id, $mode)
 	{
-		global $phpbb_container, $request, $template, $user;
+		global $phpbb_container, $request, $template, $user, $phpbb_dispatcher;
 		global $phpbb_root_path, $phpEx;
 
 		// Initialize necessary variables
@@ -57,6 +57,7 @@ class ucp_login_link
 		}
 
 		// Use the auth_provider requested even if different from configured
+		/* @var $provider_collection \phpbb\auth\provider_collection */
 		$provider_collection = $phpbb_container->get('auth.provider_collection');
 		$auth_provider = $provider_collection->get_provider($request->variable('auth_provider', ''));
 
@@ -98,7 +99,7 @@ class ucp_login_link
 					else
 					{
 						// Finish login
-						$result = $user->session_create($login_result['user_row']['user_id'], false, false, true);
+						$user->session_create($login_result['user_row']['user_id'], false, false, true);
 
 						// Perform a redirect as the account has been linked
 						$this->perform_redirect();
@@ -107,7 +108,7 @@ class ucp_login_link
 			}
 		}
 
-		$template->assign_vars(array(
+		$tpl_ary = array(
 			// Common template elements
 			'LOGIN_LINK_ERROR'		=> $login_link_error,
 			'PASSWORD_CREDENTIAL'	=> 'login_password',
@@ -120,7 +121,24 @@ class ucp_login_link
 			// Login elements
 			'LOGIN_ERROR'		=> $login_error,
 			'LOGIN_USERNAME'	=> $login_username,
-		));
+		);
+
+		/**
+		* Event to perform additional actions before ucp_login_link is displayed
+		*
+		* @event core.ucp_login_link_template_after
+		* @var	array							data				Login link data
+		* @var	\phpbb\auth\provider_interface	auth_provider		Auth provider
+		* @var	string							login_link_error	Login link error
+		* @var	string							login_error			Login error
+		* @var	string							login_username		Login username
+		* @var	array							tpl_ary				Template variables
+		* @since 3.2.4-RC1
+		*/
+		$vars = array('data', 'auth_provider', 'login_link_error', 'login_error', 'login_username', 'tpl_ary');
+		extract($phpbb_dispatcher->trigger_event('core.ucp_login_link_template_after', compact($vars)));
+
+		$template->assign_vars($tpl_ary);
 
 		$this->tpl_name = 'ucp_login_link';
 		$this->page_title = 'UCP_LOGIN_LINK';
@@ -181,7 +199,7 @@ class ucp_login_link
 	*/
 	protected function process_login_result($result)
 	{
-		global $config, $request, $template, $user, $phpbb_container;
+		global $config, $template, $user, $phpbb_container;
 
 		$login_error = null;
 

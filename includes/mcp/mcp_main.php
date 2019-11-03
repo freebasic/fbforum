@@ -28,26 +28,42 @@ class mcp_main
 	var $p_master;
 	var $u_action;
 
-	function mcp_main(&$p_master)
+	function __construct($p_master)
 	{
-		$this->p_master = &$p_master;
+		$this->p_master = $p_master;
 	}
 
 	function main($id, $mode)
 	{
-		global $auth, $db, $user, $template, $action;
-		global $config, $phpbb_root_path, $phpEx, $request;
+		global $auth, $user, $action;
+		global $phpbb_root_path, $phpEx, $request;
 		global $phpbb_dispatcher;
 
 		$quickmod = ($mode == 'quickmod') ? true : false;
+
+		/**
+		* Event to perform additional actions before an MCP action is executed.
+		*
+		* @event core.mcp_main_before
+		* @var	string	action				The action that is about to be performed
+		* @var	string	mode				The mode in which the MCP is accessed, e.g. front, forum_view, topic_view, post_details, quickmod
+		* @var	boolean	quickmod			Whether or not the action is performed via QuickMod
+		* @since 3.2.8-RC1
+		*/
+		$vars = [
+			'action',
+			'mode',
+			'quickmod',
+		];
+		extract($phpbb_dispatcher->trigger_event('core.mcp_main_before', compact($vars)));
 
 		switch ($action)
 		{
 			case 'lock':
 			case 'unlock':
-				$topic_ids = (!$quickmod) ? request_var('topic_id_list', array(0)) : array(request_var('t', 0));
+				$topic_ids = (!$quickmod) ? $request->variable('topic_id_list', array(0)) : array($request->variable('t', 0));
 
-				if (!sizeof($topic_ids))
+				if (!count($topic_ids))
 				{
 					trigger_error('NO_TOPIC_SELECTED');
 				}
@@ -58,9 +74,9 @@ class mcp_main
 			case 'lock_post':
 			case 'unlock_post':
 
-				$post_ids = (!$quickmod) ? request_var('post_id_list', array(0)) : array(request_var('p', 0));
+				$post_ids = (!$quickmod) ? $request->variable('post_id_list', array(0)) : array($request->variable('p', 0));
 
-				if (!sizeof($post_ids))
+				if (!count($post_ids))
 				{
 					trigger_error('NO_POST_SELECTED');
 				}
@@ -73,9 +89,9 @@ class mcp_main
 			case 'make_global':
 			case 'make_normal':
 
-				$topic_ids = (!$quickmod) ? request_var('topic_id_list', array(0)) : array(request_var('t', 0));
+				$topic_ids = (!$quickmod) ? $request->variable('topic_id_list', array(0)) : array($request->variable('t', 0));
 
-				if (!sizeof($topic_ids))
+				if (!count($topic_ids))
 				{
 					trigger_error('NO_TOPIC_SELECTED');
 				}
@@ -86,9 +102,9 @@ class mcp_main
 			case 'move':
 				$user->add_lang('viewtopic');
 
-				$topic_ids = (!$quickmod) ? request_var('topic_id_list', array(0)) : array(request_var('t', 0));
+				$topic_ids = (!$quickmod) ? $request->variable('topic_id_list', array(0)) : array($request->variable('t', 0));
 
-				if (!sizeof($topic_ids))
+				if (!count($topic_ids))
 				{
 					trigger_error('NO_TOPIC_SELECTED');
 				}
@@ -99,9 +115,9 @@ class mcp_main
 			case 'fork':
 				$user->add_lang('viewtopic');
 
-				$topic_ids = (!$quickmod) ? request_var('topic_id_list', array(0)) : array(request_var('t', 0));
+				$topic_ids = (!$quickmod) ? $request->variable('topic_id_list', array(0)) : array($request->variable('t', 0));
 
-				if (!sizeof($topic_ids))
+				if (!count($topic_ids))
 				{
 					trigger_error('NO_TOPIC_SELECTED');
 				}
@@ -118,7 +134,7 @@ class mcp_main
 				$topic_ids = (!$quickmod) ? $request->variable('topic_id_list', array(0)) : array($request->variable('t', 0));
 				$soft_delete = (($request->is_set_post('confirm') && !$request->is_set_post('delete_permanent')) || !$auth->acl_get('m_delete', $forum_id)) ? true : false;
 
-				if (!sizeof($topic_ids))
+				if (!count($topic_ids))
 				{
 					trigger_error('NO_TOPIC_SELECTED');
 				}
@@ -135,7 +151,7 @@ class mcp_main
 				$post_ids = (!$quickmod) ? $request->variable('post_id_list', array(0)) : array($request->variable('p', 0));
 				$soft_delete = (($request->is_set_post('confirm') && !$request->is_set_post('delete_permanent')) || !$auth->acl_get('m_delete', $forum_id)) ? true : false;
 
-				if (!sizeof($post_ids))
+				if (!count($post_ids))
 				{
 					trigger_error('NO_POST_SELECTED');
 				}
@@ -148,7 +164,7 @@ class mcp_main
 
 				$topic_ids = (!$quickmod) ? $request->variable('topic_id_list', array(0)) : array($request->variable('t', 0));
 
-				if (!sizeof($topic_ids))
+				if (!count($topic_ids))
 				{
 					trigger_error('NO_TOPIC_SELECTED');
 				}
@@ -164,7 +180,7 @@ class mcp_main
 				* @var	string	action		Topic quick moderation action name
 				* @var	bool	quickmod	Flag indicating whether MCP is in quick moderation mode
 				* @since 3.1.0-a4
-				* @change 3.1.0-RC4 Added variables: action, quickmod
+				* @changed 3.1.0-RC4 Added variables: action, quickmod
 				*/
 				$vars = array('action', 'quickmod');
 				extract($phpbb_dispatcher->trigger_event('core.modify_quickmod_actions', compact($vars)));
@@ -174,7 +190,10 @@ class mcp_main
 		switch ($mode)
 		{
 			case 'front':
-				include($phpbb_root_path . 'includes/mcp/mcp_front.' . $phpEx);
+				if (!function_exists('mcp_front_view'))
+				{
+					include($phpbb_root_path . 'includes/mcp/mcp_front.' . $phpEx);
+				}
 
 				$user->add_lang('acp/common');
 
@@ -185,15 +204,18 @@ class mcp_main
 			break;
 
 			case 'forum_view':
-				include($phpbb_root_path . 'includes/mcp/mcp_forum.' . $phpEx);
+				if (!function_exists('mcp_forum_view'))
+				{
+					include($phpbb_root_path . 'includes/mcp/mcp_forum.' . $phpEx);
+				}
 
 				$user->add_lang('viewforum');
 
-				$forum_id = request_var('f', 0);
+				$forum_id = $request->variable('f', 0);
 
 				$forum_info = phpbb_get_forum_data($forum_id, 'm_', true);
 
-				if (!sizeof($forum_info))
+				if (!count($forum_info))
 				{
 					$this->main('main', 'front');
 					return;
@@ -208,7 +230,10 @@ class mcp_main
 			break;
 
 			case 'topic_view':
-				include($phpbb_root_path . 'includes/mcp/mcp_topic.' . $phpEx);
+				if (!function_exists('mcp_topic_view'))
+				{
+					include($phpbb_root_path . 'includes/mcp/mcp_topic.' . $phpEx);
+				}
 
 				mcp_topic_view($id, $mode, $action);
 
@@ -217,7 +242,10 @@ class mcp_main
 			break;
 
 			case 'post_details':
-				include($phpbb_root_path . 'includes/mcp/mcp_post.' . $phpEx);
+				if (!function_exists('mcp_post_details'))
+				{
+					include($phpbb_root_path . 'includes/mcp/mcp_post.' . $phpEx);
+				}
 
 				mcp_post_details($id, $mode, $action);
 
@@ -262,7 +290,7 @@ class mcp_main
 */
 function lock_unlock($action, $ids)
 {
-	global $auth, $user, $db, $phpEx, $phpbb_root_path, $request, $phpbb_dispatcher;
+	global $user, $db, $request, $phpbb_log, $phpbb_dispatcher;
 
 	if ($action == 'lock' || $action == 'unlock')
 	{
@@ -298,7 +326,7 @@ function lock_unlock($action, $ids)
 	}
 	unset($orig_ids);
 
-	$redirect = request_var('redirect', build_url(array('action', 'quickmod')));
+	$redirect = $request->variable('redirect', build_url(array('action', 'quickmod')));
 	$redirect = reapply_sid($redirect);
 
 	$s_hidden_fields = build_hidden_fields(array(
@@ -306,7 +334,6 @@ function lock_unlock($action, $ids)
 		'action'			=> $action,
 		'redirect'			=> $redirect)
 	);
-	$success_msg = '';
 
 	if (confirm_box(true))
 	{
@@ -319,7 +346,12 @@ function lock_unlock($action, $ids)
 
 		foreach ($data as $id => $row)
 		{
-			add_log('mod', $row['forum_id'], $row['topic_id'], 'LOG_' . strtoupper($action), $row['topic_title']);
+			$phpbb_log->add('mod', $user->data['user_id'], $user->ip, 'LOG_' . strtoupper($action), false, array(
+				'forum_id' => $row['forum_id'],
+				'topic_id' => $row['topic_id'],
+				'post_id'  => isset($row['post_id']) ? $row['post_id'] : 0,
+				$row['topic_title']
+			));
 		}
 
 		/**
@@ -338,7 +370,7 @@ function lock_unlock($action, $ids)
 		);
 		extract($phpbb_dispatcher->trigger_event('core.mcp_lock_unlock_after', compact($vars)));
 
-		$success_msg = $l_prefix . ((sizeof($ids) == 1) ? '' : 'S') . '_' . (($action == 'lock' || $action == 'lock_post') ? 'LOCKED' : 'UNLOCKED') . '_SUCCESS';
+		$success_msg = $l_prefix . ((count($ids) == 1) ? '' : 'S') . '_' . (($action == 'lock' || $action == 'lock_post') ? 'LOCKED' : 'UNLOCKED') . '_SUCCESS';
 
 		meta_refresh(2, $redirect);
 		$message = $user->lang[$success_msg];
@@ -351,7 +383,7 @@ function lock_unlock($action, $ids)
 	}
 	else
 	{
-		confirm_box(false, strtoupper($action) . '_' . $l_prefix . ((sizeof($ids) == 1) ? '' : 'S'), $s_hidden_fields);
+		confirm_box(false, strtoupper($action) . '_' . $l_prefix . ((count($ids) == 1) ? '' : 'S'), $s_hidden_fields);
 	}
 
 	redirect($redirect);
@@ -362,32 +394,32 @@ function lock_unlock($action, $ids)
 */
 function change_topic_type($action, $topic_ids)
 {
-	global $auth, $user, $db, $phpEx, $phpbb_root_path, $request;
+	global $user, $db, $request, $phpbb_log, $phpbb_dispatcher;
 
 	switch ($action)
 	{
 		case 'make_announce':
 			$new_topic_type = POST_ANNOUNCE;
 			$check_acl = 'f_announce';
-			$l_new_type = (sizeof($topic_ids) == 1) ? 'MCP_MAKE_ANNOUNCEMENT' : 'MCP_MAKE_ANNOUNCEMENTS';
+			$l_new_type = (count($topic_ids) == 1) ? 'MCP_MAKE_ANNOUNCEMENT' : 'MCP_MAKE_ANNOUNCEMENTS';
 		break;
 
 		case 'make_global':
 			$new_topic_type = POST_GLOBAL;
-			$check_acl = 'f_announce';
-			$l_new_type = (sizeof($topic_ids) == 1) ? 'MCP_MAKE_GLOBAL' : 'MCP_MAKE_GLOBALS';
+			$check_acl = 'f_announce_global';
+			$l_new_type = (count($topic_ids) == 1) ? 'MCP_MAKE_GLOBAL' : 'MCP_MAKE_GLOBALS';
 		break;
 
 		case 'make_sticky':
 			$new_topic_type = POST_STICKY;
 			$check_acl = 'f_sticky';
-			$l_new_type = (sizeof($topic_ids) == 1) ? 'MCP_MAKE_STICKY' : 'MCP_MAKE_STICKIES';
+			$l_new_type = (count($topic_ids) == 1) ? 'MCP_MAKE_STICKY' : 'MCP_MAKE_STICKIES';
 		break;
 
 		default:
 			$new_topic_type = POST_NORMAL;
 			$check_acl = false;
-			$l_new_type = (sizeof($topic_ids) == 1) ? 'MCP_MAKE_NORMAL' : 'MCP_MAKE_NORMALS';
+			$l_new_type = (count($topic_ids) == 1) ? 'MCP_MAKE_NORMAL' : 'MCP_MAKE_NORMALS';
 		break;
 	}
 
@@ -398,7 +430,7 @@ function change_topic_type($action, $topic_ids)
 		return;
 	}
 
-	$redirect = request_var('redirect', build_url(array('action', 'quickmod')));
+	$redirect = $request->variable('redirect', build_url(array('action', 'quickmod')));
 	$redirect = reapply_sid($redirect);
 
 	$s_hidden_fields = array(
@@ -407,39 +439,74 @@ function change_topic_type($action, $topic_ids)
 		'action'		=> $action,
 		'redirect'		=> $redirect,
 	);
-	$success_msg = '';
 
 	if (confirm_box(true))
 	{
+
+		/**
+		 * Perform additional actions before changing topic(s) type
+		 *
+		 * @event core.mcp_change_topic_type_before
+		 * @var	int		new_topic_type		The candidated topic type.
+		 * @var	int		forum_id			The forum ID for the topic ID(s).
+		 * @var	array	topic_ids			Array containing the topic ID(s) that will be changed
+		 * @since 3.2.6-RC1
+		 */
+		$vars = array(
+			'new_topic_type',
+			'forum_id',
+			'topic_ids',
+		);
+		extract($phpbb_dispatcher->trigger_event('core.mcp_change_topic_type_before', compact($vars)));
+
+		$db->sql_transaction('begin');
+
 		$sql = 'UPDATE ' . TOPICS_TABLE . "
 			SET topic_type = $new_topic_type
 			WHERE " . $db->sql_in_set('topic_id', $topic_ids);
 		$db->sql_query($sql);
 
-		if (($new_topic_type == POST_GLOBAL) && sizeof($topic_ids))
+		if (($new_topic_type == POST_GLOBAL) && count($topic_ids))
 		{
 			// Delete topic shadows for global announcements
 			$sql = 'DELETE FROM ' . TOPICS_TABLE . '
 				WHERE ' . $db->sql_in_set('topic_moved_id', $topic_ids);
 			$db->sql_query($sql);
-
-			$sql = 'UPDATE ' . TOPICS_TABLE . "
-				SET topic_type = $new_topic_type
-					WHERE " . $db->sql_in_set('topic_id', $topic_ids);
-			$db->sql_query($sql);
 		}
 
-		$success_msg = (sizeof($topic_ids) == 1) ? 'TOPIC_TYPE_CHANGED' : 'TOPICS_TYPE_CHANGED';
+		$db->sql_transaction('commit');
 
-		if (sizeof($topic_ids))
+		$success_msg = (count($topic_ids) == 1) ? 'TOPIC_TYPE_CHANGED' : 'TOPICS_TYPE_CHANGED';
+
+		if (count($topic_ids))
 		{
 			$data = phpbb_get_topic_data($topic_ids);
 
 			foreach ($data as $topic_id => $row)
 			{
-				add_log('mod', $forum_id, $topic_id, 'LOG_TOPIC_TYPE_CHANGED', $row['topic_title']);
+				$phpbb_log->add('mod', $user->data['user_id'], $user->ip, 'LOG_TOPIC_TYPE_CHANGED', false, array(
+					'forum_id' => $forum_id,
+					'topic_id' => $topic_id,
+					$row['topic_title']
+				));
 			}
 		}
+
+		/**
+		 * Perform additional actions after changing topic types
+		 *
+		 * @event core.mcp_change_topic_type_after
+		 * @var	int		new_topic_type		The newly changed topic type.
+		 * @var	int		forum_id			The forum ID where the newly changed topic type belongs to.
+		 * @var	array	topic_ids			Array containing the topic IDs that have been changed
+		 * @since 3.2.6-RC1
+		 */
+		$vars = array(
+			'new_topic_type',
+			'forum_id',
+			'topic_ids',
+		);
+		extract($phpbb_dispatcher->trigger_event('core.mcp_change_topic_type_after', compact($vars)));
 
 		meta_refresh(2, $redirect);
 		$message = $user->lang[$success_msg];
@@ -463,7 +530,7 @@ function change_topic_type($action, $topic_ids)
 */
 function mcp_move_topic($topic_ids)
 {
-	global $auth, $user, $db, $template, $phpbb_log, $request;
+	global $auth, $user, $db, $template, $phpbb_log, $request, $phpbb_dispatcher;
 	global $phpEx, $phpbb_root_path;
 
 	// Here we limit the operation to one forum only
@@ -474,8 +541,8 @@ function mcp_move_topic($topic_ids)
 		return;
 	}
 
-	$to_forum_id = request_var('to_forum_id', 0);
-	$redirect = request_var('redirect', build_url(array('action', 'quickmod')));
+	$to_forum_id = $request->variable('to_forum_id', 0);
+	$redirect = $request->variable('redirect', build_url(array('action', 'quickmod')));
 	$additional_msg = $success_msg = '';
 
 	$s_hidden_fields = build_hidden_fields(array(
@@ -489,7 +556,7 @@ function mcp_move_topic($topic_ids)
 	{
 		$forum_data = phpbb_get_forum_data($to_forum_id, 'f_post');
 
-		if (!sizeof($forum_data))
+		if (!count($forum_data))
 		{
 			$additional_msg = $user->lang['FORUM_NOT_EXIST'];
 		}
@@ -625,6 +692,21 @@ function mcp_move_topic($topic_ids)
 					'poll_last_vote'		=>	(int) $row['poll_last_vote']
 				);
 
+				/**
+				* Perform actions before shadow topic is created.
+				*
+				* @event core.mcp_main_modify_shadow_sql
+				* @var	array	shadow	SQL array to be used by $db->sql_build_array
+				* @var	array	row		Topic data
+				* @since 3.1.11-RC1
+				* @changed 3.1.11-RC1 Added variable: row
+				*/
+				$vars = array(
+					'shadow',
+					'row',
+				);
+				extract($phpbb_dispatcher->trigger_event('core.mcp_main_modify_shadow_sql', compact($vars)));
+
 				$db->sql_query('INSERT INTO ' . TOPICS_TABLE . $db->sql_build_array('INSERT', $shadow));
 
 				// Shadow topics only count on new "topics" and not posts... a shadow topic alone has 0 posts
@@ -669,7 +751,7 @@ function mcp_move_topic($topic_ids)
 			$sync_sql[$forum_id][] = 'forum_topics_softdeleted = forum_topics_softdeleted - ' . (int) $topics_moved_softdeleted;
 		}
 
-		$success_msg = (sizeof($topic_ids) == 1) ? 'TOPIC_MOVED_SUCCESS' : 'TOPICS_MOVED_SUCCESS';
+		$success_msg = (count($topic_ids) == 1) ? 'TOPIC_MOVED_SUCCESS' : 'TOPICS_MOVED_SUCCESS';
 
 		foreach ($sync_sql as $forum_id_key => $array)
 		{
@@ -692,10 +774,10 @@ function mcp_move_topic($topic_ids)
 			'ADDITIONAL_MSG'		=> $additional_msg)
 		);
 
-		confirm_box(false, 'MOVE_TOPIC' . ((sizeof($topic_ids) == 1) ? '' : 'S'), $s_hidden_fields, 'mcp_move.html');
+		confirm_box(false, 'MOVE_TOPIC' . ((count($topic_ids) == 1) ? '' : 'S'), $s_hidden_fields, 'mcp_move.html');
 	}
 
-	$redirect = request_var('redirect', "index.$phpEx");
+	$redirect = $request->variable('redirect', "index.$phpEx");
 	$redirect = reapply_sid($redirect);
 
 	if (!$success_msg)
@@ -720,7 +802,7 @@ function mcp_move_topic($topic_ids)
 */
 function mcp_restore_topic($topic_ids)
 {
-	global $auth, $user, $db, $phpEx, $phpbb_root_path, $request, $phpbb_container;
+	global $user, $phpEx, $phpbb_root_path, $request, $phpbb_container, $phpbb_log;
 
 	if (!phpbb_check_ids($topic_ids, TOPICS_TABLE, 'topic_id', array('m_approve')))
 	{
@@ -740,23 +822,29 @@ function mcp_restore_topic($topic_ids)
 
 	if (confirm_box(true))
 	{
-		$success_msg = (sizeof($topic_ids) == 1) ? 'TOPIC_RESTORED_SUCCESS' : 'TOPICS_RESTORED_SUCCESS';
+		$success_msg = (count($topic_ids) == 1) ? 'TOPIC_RESTORED_SUCCESS' : 'TOPICS_RESTORED_SUCCESS';
 
 		$data = phpbb_get_topic_data($topic_ids);
 
+		/* @var $phpbb_content_visibility \phpbb\content_visibility */
 		$phpbb_content_visibility = $phpbb_container->get('content.visibility');
 		foreach ($data as $topic_id => $row)
 		{
 			$return = $phpbb_content_visibility->set_topic_visibility(ITEM_APPROVED, $topic_id, $row['forum_id'], $user->data['user_id'], time(), '');
 			if (!empty($return))
 			{
-				add_log('mod', $row['forum_id'], $topic_id, 'LOG_RESTORE_TOPIC', $row['topic_title'], $row['topic_first_poster_name']);
+				$phpbb_log->add('mod', $user->data['user_id'], $user->ip, 'LOG_RESTORE_TOPIC', false, array(
+					'forum_id' => $row['forum_id'],
+					'topic_id' => $topic_id,
+					$row['topic_title'],
+					$row['topic_first_poster_name']
+				));
 			}
 		}
 	}
 	else
 	{
-		confirm_box(false, (sizeof($topic_ids) == 1) ? 'RESTORE_TOPIC' : 'RESTORE_TOPICS', $s_hidden_fields);
+		confirm_box(false, (count($topic_ids) == 1) ? 'RESTORE_TOPIC' : 'RESTORE_TOPICS', $s_hidden_fields);
 	}
 
 	$topic_id = $request->variable('t', 0);
@@ -793,7 +881,7 @@ function mcp_restore_topic($topic_ids)
 */
 function mcp_delete_topic($topic_ids, $is_soft = false, $soft_delete_reason = '', $action = 'delete_topic')
 {
-	global $auth, $user, $db, $phpEx, $phpbb_root_path, $request, $phpbb_container;
+	global $auth, $user, $db, $phpEx, $phpbb_root_path, $request, $phpbb_container, $phpbb_log;
 
 	$check_permission = ($is_soft) ? 'm_softdelete' : 'm_delete';
 	if (!phpbb_check_ids($topic_ids, TOPICS_TABLE, 'topic_id', array($check_permission)))
@@ -814,7 +902,7 @@ function mcp_delete_topic($topic_ids, $is_soft = false, $soft_delete_reason = ''
 
 	if (confirm_box(true))
 	{
-		$success_msg = (sizeof($topic_ids) == 1) ? 'TOPIC_DELETED_SUCCESS' : 'TOPICS_DELETED_SUCCESS';
+		$success_msg = (count($topic_ids) == 1) ? 'TOPIC_DELETED_SUCCESS' : 'TOPICS_DELETED_SUCCESS';
 
 		$data = phpbb_get_topic_data($topic_ids);
 
@@ -822,30 +910,47 @@ function mcp_delete_topic($topic_ids, $is_soft = false, $soft_delete_reason = ''
 		{
 			if ($row['topic_moved_id'])
 			{
-				add_log('mod', $row['forum_id'], $topic_id, 'LOG_DELETE_SHADOW_TOPIC', $row['topic_title']);
+				$phpbb_log->add('mod', $user->data['user_id'], $user->ip, 'LOG_DELETE_SHADOW_TOPIC', false, array(
+					'forum_id' => $row['forum_id'],
+					'topic_id' => $topic_id,
+					$row['topic_title']
+				));
 			}
 			else
 			{
 				// Only soft delete non-shadow topics
 				if ($is_soft)
 				{
+					/* @var $phpbb_content_visibility \phpbb\content_visibility */
 					$phpbb_content_visibility = $phpbb_container->get('content.visibility');
 					$return = $phpbb_content_visibility->set_topic_visibility(ITEM_DELETED, $topic_id, $row['forum_id'], $user->data['user_id'], time(), $soft_delete_reason);
 					if (!empty($return))
 					{
-						add_log('mod', $row['forum_id'], $topic_id, 'LOG_SOFTDELETE_TOPIC', $row['topic_title'], $row['topic_first_poster_name'], $soft_delete_reason);
+						$phpbb_log->add('mod', $user->data['user_id'], $user->ip, 'LOG_SOFTDELETE_TOPIC', false, array(
+							'forum_id' => $row['forum_id'],
+							'topic_id' => $topic_id,
+							$row['topic_title'],
+							$row['topic_first_poster_name'],
+							$soft_delete_reason
+						));
 					}
 				}
 				else
 				{
-					add_log('mod', $row['forum_id'], $topic_id, 'LOG_DELETE_TOPIC', $row['topic_title'], $row['topic_first_poster_name'], $soft_delete_reason);
+					$phpbb_log->add('mod', $user->data['user_id'], $user->ip, 'LOG_DELETE_TOPIC', false, array(
+						'forum_id' => $row['forum_id'],
+						'topic_id' => $topic_id,
+						$row['topic_title'],
+						$row['topic_first_poster_name'],
+						$soft_delete_reason
+					));
 				}
 			}
 		}
 
 		if (!$is_soft)
 		{
-			$return = delete_topics('topic_id', $topic_ids);
+			delete_topics('topic_id', $topic_ids);
 		}
 	}
 	else
@@ -877,17 +982,19 @@ function mcp_delete_topic($topic_ids, $is_soft = false, $soft_delete_reason = ''
 		}
 
 		$template->assign_vars(array(
-			'S_SHADOW_TOPICS'		=> $only_shadow,
-			'S_SOFTDELETED'			=> $only_softdeleted,
-			'S_TOPIC_MODE'			=> true,
-			'S_ALLOWED_DELETE'		=> $auth->acl_get('m_delete', $forum_id),
-			'S_ALLOWED_SOFTDELETE'	=> $auth->acl_get('m_softdelete', $forum_id),
+			'S_SHADOW_TOPICS'					=> $only_shadow,
+			'S_SOFTDELETED'						=> $only_softdeleted,
+			'S_TOPIC_MODE'						=> true,
+			'S_ALLOWED_DELETE'					=> $auth->acl_get('m_delete', $forum_id),
+			'S_ALLOWED_SOFTDELETE'				=> $auth->acl_get('m_softdelete', $forum_id),
+			'DELETE_TOPIC_PERMANENTLY_EXPLAIN'	=> $user->lang('DELETE_TOPIC_PERMANENTLY', count($topic_ids)),
 		));
 
-		$l_confirm = (sizeof($topic_ids) == 1) ? 'DELETE_TOPIC' : 'DELETE_TOPICS';
+		$count = count($topic_ids);
+		$l_confirm = $count === 1 ? 'DELETE_TOPIC' : 'DELETE_TOPICS';
 		if ($only_softdeleted)
 		{
-			$l_confirm .= '_PERMANENTLY';
+			$l_confirm = array($l_confirm . '_PERMANENTLY', $count);
 			$s_hidden_fields['delete_permanent'] = '1';
 		}
 		else if ($only_shadow || !$auth->acl_get('m_softdelete', $forum_id))
@@ -932,7 +1039,7 @@ function mcp_delete_topic($topic_ids, $is_soft = false, $soft_delete_reason = ''
 */
 function mcp_delete_post($post_ids, $is_soft = false, $soft_delete_reason = '', $action = 'delete_post')
 {
-	global $auth, $user, $db, $phpEx, $phpbb_root_path, $request, $phpbb_container;
+	global $auth, $user, $db, $phpEx, $phpbb_root_path, $request, $phpbb_container, $phpbb_log;
 
 	$check_permission = ($is_soft) ? 'm_softdelete' : 'm_delete';
 	if (!phpbb_check_ids($post_ids, POSTS_TABLE, 'post_id', array($check_permission)))
@@ -982,6 +1089,7 @@ function mcp_delete_post($post_ids, $is_soft = false, $soft_delete_reason = '', 
 			$approve_log[] = array(
 				'forum_id'		=> $post_data['forum_id'],
 				'topic_id'		=> $post_data['topic_id'],
+				'post_id'		=> $post_id,
 				'post_subject'	=> $post_data['post_subject'],
 				'poster_id'		=> $post_data['poster_id'],
 				'post_username'	=> $post_data['post_username'],
@@ -989,21 +1097,29 @@ function mcp_delete_post($post_ids, $is_soft = false, $soft_delete_reason = '', 
 			);
 		}
 
+		/* @var $phpbb_content_visibility \phpbb\content_visibility */
 		$phpbb_content_visibility = $phpbb_container->get('content.visibility');
 		foreach ($topic_info as $topic_id => $topic_data)
 		{
 			$phpbb_content_visibility->set_post_visibility(ITEM_DELETED, $topic_data['posts'], $topic_id, $topic_data['forum_id'], $user->data['user_id'], time(), $soft_delete_reason, isset($topic_data['first_post']), isset($topic_data['last_post']));
 		}
-		$affected_topics = sizeof($topic_info);
+		$affected_topics = count($topic_info);
 		// None of the topics is really deleted, so a redirect won't hurt much.
 		$deleted_topics = 0;
 
-		$success_msg = (sizeof($post_info) == 1) ? $user->lang['POST_DELETED_SUCCESS'] : $user->lang['POSTS_DELETED_SUCCESS'];
+		$success_msg = (count($post_info) == 1) ? $user->lang['POST_DELETED_SUCCESS'] : $user->lang['POSTS_DELETED_SUCCESS'];
 
 		foreach ($approve_log as $row)
 		{
 			$post_username = ($row['poster_id'] == ANONYMOUS && !empty($row['post_username'])) ? $row['post_username'] : $row['username'];
-			add_log('mod', $row['forum_id'], $row['topic_id'], 'LOG_SOFTDELETE_POST', $row['post_subject'], $post_username, $soft_delete_reason);
+			$phpbb_log->add('mod', $user->data['user_id'], $user->ip, 'LOG_SOFTDELETE_POST', false, array(
+				'forum_id' => $row['forum_id'],
+				'topic_id' => $row['topic_id'],
+				'post_id'  => $row['post_id'],
+				$row['post_subject'],
+				$post_username,
+				$soft_delete_reason
+			));
 		}
 
 		$topic_id = $request->variable('t', 0);
@@ -1038,7 +1154,7 @@ function mcp_delete_post($post_ids, $is_soft = false, $soft_delete_reason = '', 
 		{
 			$topic_id_list[] = $row['topic_id'];
 		}
-		$affected_topics = sizeof($topic_id_list);
+		$affected_topics = count($topic_id_list);
 		$db->sql_freeresult($result);
 
 		$post_data = phpbb_get_post_data($post_ids);
@@ -1046,7 +1162,14 @@ function mcp_delete_post($post_ids, $is_soft = false, $soft_delete_reason = '', 
 		foreach ($post_data as $id => $row)
 		{
 			$post_username = ($row['poster_id'] == ANONYMOUS && !empty($row['post_username'])) ? $row['post_username'] : $row['username'];
-			add_log('mod', $row['forum_id'], $row['topic_id'], 'LOG_DELETE_POST', $row['post_subject'], $post_username, $soft_delete_reason);
+			$phpbb_log->add('mod', $user->data['user_id'], $user->ip, 'LOG_DELETE_POST', false, array(
+				'forum_id' => $row['forum_id'],
+				'topic_id' => $row['topic_id'],
+				'post_id'  => $row['post_id'],
+				$row['post_subject'],
+				$post_username,
+				$soft_delete_reason
+			));
 		}
 
 		// Now delete the posts, topics and forums are automatically resync'ed
@@ -1070,7 +1193,7 @@ function mcp_delete_post($post_ids, $is_soft = false, $soft_delete_reason = '', 
 		}
 		$return_link[] = sprintf($user->lang['RETURN_FORUM'], '<a href="' . append_sid("{$phpbb_root_path}viewforum.$phpEx", 'f=' . $forum_id) . '">', '</a>');
 
-		if (sizeof($post_ids) == 1)
+		if (count($post_ids) == 1)
 		{
 			if ($deleted_topics)
 			{
@@ -1116,15 +1239,17 @@ function mcp_delete_post($post_ids, $is_soft = false, $soft_delete_reason = '', 
 		}
 
 		$template->assign_vars(array(
-			'S_SOFTDELETED'			=> $only_softdeleted,
-			'S_ALLOWED_DELETE'		=> $auth->acl_get('m_delete', $forum_id),
-			'S_ALLOWED_SOFTDELETE'	=> $auth->acl_get('m_softdelete', $forum_id),
+			'S_SOFTDELETED'						=> $only_softdeleted,
+			'S_ALLOWED_DELETE'					=> $auth->acl_get('m_delete', $forum_id),
+			'S_ALLOWED_SOFTDELETE'				=> $auth->acl_get('m_softdelete', $forum_id),
+			'DELETE_POST_PERMANENTLY_EXPLAIN'	=> $user->lang('DELETE_POST_PERMANENTLY', count($post_ids)),
 		));
 
-		$l_confirm = (sizeof($post_ids) == 1) ? 'DELETE_POST' : 'DELETE_POSTS';
+		$count = count($post_ids);
+		$l_confirm = $count === 1 ? 'DELETE_POST' : 'DELETE_POSTS';
 		if ($only_softdeleted)
 		{
-			$l_confirm .= '_PERMANENTLY';
+			$l_confirm = array($l_confirm . '_PERMANENTLY', $count);
 			$s_hidden_fields['delete_permanent'] = '1';
 		}
 		else if (!$auth->acl_get('m_softdelete', $forum_id))
@@ -1160,16 +1285,16 @@ function mcp_delete_post($post_ids, $is_soft = false, $soft_delete_reason = '', 
 function mcp_fork_topic($topic_ids)
 {
 	global $auth, $user, $db, $template, $config;
-	global $phpEx, $phpbb_root_path, $phpbb_dispatcher;
+	global $phpEx, $phpbb_root_path, $phpbb_log, $request, $phpbb_dispatcher;
 
 	if (!phpbb_check_ids($topic_ids, TOPICS_TABLE, 'topic_id', array('m_')))
 	{
 		return;
 	}
 
-	$to_forum_id = request_var('to_forum_id', 0);
-	$forum_id = request_var('f', 0);
-	$redirect = request_var('redirect', build_url(array('action', 'quickmod')));
+	$to_forum_id = $request->variable('to_forum_id', 0);
+	$forum_id = $request->variable('f', 0);
+	$redirect = $request->variable('redirect', build_url(array('action', 'quickmod')));
 	$additional_msg = $success_msg = '';
 	$counter = array();
 
@@ -1184,11 +1309,11 @@ function mcp_fork_topic($topic_ids)
 	{
 		$forum_data = phpbb_get_forum_data($to_forum_id, 'f_post');
 
-		if (!sizeof($topic_ids))
+		if (!count($topic_ids))
 		{
 			$additional_msg = $user->lang['NO_TOPIC_SELECTED'];
 		}
-		else if (!sizeof($forum_data))
+		else if (!count($forum_data))
 		{
 			$additional_msg = $user->lang['FORUM_NOT_EXIST'];
 		}
@@ -1279,6 +1404,21 @@ function mcp_fork_topic($topic_ids)
 				'poll_vote_change'			=> (int) $topic_row['poll_vote_change'],
 			);
 
+			/**
+			* Perform actions before forked topic is created.
+			*
+			* @event core.mcp_main_modify_fork_sql
+			* @var	array	sql_ary		SQL array to be used by $db->sql_build_array
+			* @var	array	topic_row	Topic data
+			* @since 3.1.11-RC1
+			* @changed 3.1.11-RC1 Added variable: topic_row
+			*/
+			$vars = array(
+				'sql_ary',
+				'topic_row',
+			);
+			extract($phpbb_dispatcher->trigger_event('core.mcp_main_modify_fork_sql', compact($vars)));
+
 			$db->sql_query('INSERT INTO ' . TOPICS_TABLE . ' ' . $db->sql_build_array('INSERT', $sql_ary));
 			$new_topic_id = $db->sql_nextid();
 			$new_topic_id_list[$topic_id] = $new_topic_id;
@@ -1299,8 +1439,6 @@ function mcp_fork_topic($topic_ids)
 
 			if ($topic_row['poll_start'])
 			{
-				$poll_rows = array();
-
 				$sql = 'SELECT *
 					FROM ' . POLL_OPTIONS_TABLE . "
 					WHERE topic_id = $topic_id";
@@ -1333,7 +1471,7 @@ function mcp_fork_topic($topic_ids)
 			}
 			$db->sql_freeresult($result);
 
-			if (!sizeof($post_rows))
+			if (!count($post_rows))
 			{
 				continue;
 			}
@@ -1381,6 +1519,24 @@ function mcp_fork_topic($topic_ids)
 				}
 				$db->sql_query('INSERT INTO ' . POSTS_TABLE . ' ' . $db->sql_build_array('INSERT', $sql_ary));
 				$new_post_id = $db->sql_nextid();
+
+				/**
+				* Perform actions after forked topic is created.
+				*
+				* @event core.mcp_main_fork_sql_after
+				* @var	int		new_topic_id	The newly created topic ID
+				* @var	int		to_forum_id		The forum ID where the forked topic has been moved to
+				* @var	int		new_post_id		The newly created post ID
+				* @var	array	row				Post data
+				* @since 3.2.4-RC1
+				*/
+				$vars = array(
+					'new_topic_id',
+					'to_forum_id',
+					'new_post_id',
+					'row',
+				);
+				extract($phpbb_dispatcher->trigger_event('core.mcp_main_fork_sql_after', compact($vars)));
 
 				switch ($row['post_visibility'])
 				{
@@ -1436,7 +1592,7 @@ function mcp_fork_topic($topic_ids)
 					}
 					$db->sql_freeresult($result);
 
-					if (sizeof($sql_ary))
+					if (count($sql_ary))
 					{
 						$db->sql_multi_insert(ATTACHMENTS_TABLE, $sql_ary);
 					}
@@ -1460,7 +1616,7 @@ function mcp_fork_topic($topic_ids)
 			}
 			$db->sql_freeresult($result);
 
-			if (sizeof($sql_ary))
+			if (count($sql_ary))
 			{
 				$db->sql_multi_insert(TOPICS_WATCH_TABLE, $sql_ary);
 			}
@@ -1481,7 +1637,7 @@ function mcp_fork_topic($topic_ids)
 			}
 			$db->sql_freeresult($result);
 
-			if (sizeof($sql_ary))
+			if (count($sql_ary))
 			{
 				$db->sql_multi_insert(BOOKMARKS_TABLE, $sql_ary);
 			}
@@ -1513,15 +1669,19 @@ function mcp_fork_topic($topic_ids)
 		sync('topic', 'topic_id', $new_topic_id_list);
 		sync('forum', 'forum_id', $to_forum_id);
 
-		set_config_count('num_topics', sizeof($new_topic_id_list), true);
-		set_config_count('num_posts', $total_posts, true);
+		$config->increment('num_topics', count($new_topic_id_list), false);
+		$config->increment('num_posts', $total_posts, false);
 
 		foreach ($new_topic_id_list as $topic_id => $new_topic_id)
 		{
-			add_log('mod', $to_forum_id, $new_topic_id, 'LOG_FORK', $topic_row['forum_name']);
+			$phpbb_log->add('mod', $user->data['user_id'], $user->ip, 'LOG_FORK', false, array(
+				'forum_id' => $to_forum_id,
+				'topic_id' => $new_topic_id,
+				$topic_row['forum_name']
+			));
 		}
 
-		$success_msg = (sizeof($topic_ids) == 1) ? 'TOPIC_FORKED_SUCCESS' : 'TOPICS_FORKED_SUCCESS';
+		$success_msg = (count($topic_ids) == 1) ? 'TOPIC_FORKED_SUCCESS' : 'TOPICS_FORKED_SUCCESS';
 	}
 	else
 	{
@@ -1531,10 +1691,10 @@ function mcp_fork_topic($topic_ids)
 			'ADDITIONAL_MSG'		=> $additional_msg)
 		);
 
-		confirm_box(false, 'FORK_TOPIC' . ((sizeof($topic_ids) == 1) ? '' : 'S'), $s_hidden_fields, 'mcp_move.html');
+		confirm_box(false, 'FORK_TOPIC' . ((count($topic_ids) == 1) ? '' : 'S'), $s_hidden_fields, 'mcp_move.html');
 	}
 
-	$redirect = request_var('redirect', "index.$phpEx");
+	$redirect = $request->variable('redirect', "index.$phpEx");
 	$redirect = reapply_sid($redirect);
 
 	if (!$success_msg)

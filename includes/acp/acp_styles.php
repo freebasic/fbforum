@@ -32,6 +32,9 @@ class acp_styles
 	protected $styles_list_cols = 0;
 	protected $reserved_style_names = array('adm', 'admin', 'all');
 
+	/** @var \phpbb\config\config */
+	protected $config;
+
 	/** @var \phpbb\db\driver\driver_interface */
 	protected $db;
 
@@ -50,6 +53,9 @@ class acp_styles
 	/** @var \phpbb\auth\auth */
 	protected $auth;
 
+	/** @var \phpbb\textformatter\cache_interface */
+	protected $text_formatter_cache;
+
 	/** @var string */
 	protected $phpbb_root_path;
 
@@ -61,7 +67,7 @@ class acp_styles
 
 	public function main($id, $mode)
 	{
-		global $db, $user, $phpbb_admin_path, $phpbb_root_path, $phpEx, $template, $request, $cache, $auth, $config, $phpbb_dispatcher;
+		global $db, $user, $phpbb_admin_path, $phpbb_root_path, $phpEx, $template, $request, $cache, $auth, $config, $phpbb_dispatcher, $phpbb_container;
 
 		$this->db = $db;
 		$this->user = $user;
@@ -69,6 +75,7 @@ class acp_styles
 		$this->request = $request;
 		$this->cache = $cache;
 		$this->auth = $auth;
+		$this->text_formatter_cache = $phpbb_container->get('text_formatter.cache');
 		$this->config = $config;
 		$this->phpbb_root_path = $phpbb_root_path;
 		$this->php_ext = $phpEx;
@@ -194,7 +201,6 @@ class acp_styles
 		$messages = array();
 		$installed_names = array();
 		$installed_dirs = array();
-		$last_installed = false;
 		foreach ($dirs as $dir)
 		{
 			if (in_array($dir, $this->reserved_style_names))
@@ -217,7 +223,6 @@ class acp_styles
 					$style['style_id'] = $this->install_style($style);
 					$style['_installed'] = true;
 					$found = true;
-					$last_installed = $style['style_id'];
 					$installed_names[] = $style['style_name'];
 					$installed_dirs[] = $style['style_path'];
 					$messages[] = sprintf($this->user->lang['STYLE_INSTALLED'], htmlspecialchars($style['style_name']));
@@ -227,6 +232,12 @@ class acp_styles
 			{
 				$messages[] = sprintf($this->user->lang['STYLE_NOT_INSTALLED'], htmlspecialchars($dir));
 			}
+		}
+
+		// Invalidate the text formatter's cache for the new styles to take effect
+		if (!empty($installed_names))
+		{
+			$this->text_formatter_cache->invalidate();
 		}
 
 		// Show message
@@ -247,6 +258,19 @@ class acp_styles
 	{
 		// Get list of styles to uninstall
 		$ids = $this->request_vars('id', 0, true);
+
+		// Don't remove prosilver, you can still deactivate it.
+		$sql = 'SELECT style_id
+			FROM ' . STYLES_TABLE . "
+			WHERE style_name = '" . $this->db->sql_escape('prosilver') . "'";
+		$result = $this->db->sql_query($sql);
+		$prosilver_id = (int) $this->db->sql_fetchfield('style_id');
+		$this->db->sql_freeresult($result);
+
+		if ($prosilver_id && in_array($prosilver_id, $ids))
+		{
+			trigger_error($this->user->lang('UNINSTALL_PROSILVER') . adm_back_link($this->u_action), E_USER_WARNING);
+		}
 
 		// Check if confirmation box was submitted
 		if (confirm_box(true))
@@ -276,6 +300,8 @@ class acp_styles
 	*/
 	protected function action_uninstall_confirmed($ids, $delete_files)
 	{
+		global $user, $phpbb_log;
+
 		$default = $this->default_style;
 		$uninstalled = array();
 		$messages = array();
@@ -335,7 +361,7 @@ class acp_styles
 		// Log action
 		if (count($uninstalled))
 		{
-			add_log('admin', 'LOG_STYLE_DELETE', implode(', ', $uninstalled));
+			$phpbb_log->add('admin', $user->data['user_id'], $user->ip, 'LOG_STYLE_DELETE', false, array(implode(', ', $uninstalled)));
 		}
 
 		// Clear cache
@@ -385,7 +411,7 @@ class acp_styles
 
 		// Reset default style for users who use selected styles
 		$sql = 'UPDATE ' . USERS_TABLE . '
-			SET user_style = 0
+			SET user_style = ' . (int) $this->default_style . '
 			WHERE user_style IN (' . implode(', ', $ids) . ')';
 		$this->db->sql_query($sql);
 
@@ -407,6 +433,8 @@ class acp_styles
 	*/
 	protected function action_details()
 	{
+		global $user, $phpbb_log;
+
 		$id = $this->request->variable('id', 0);
 		if (!$id)
 		{
@@ -432,6 +460,9 @@ class acp_styles
 		{
 			trigger_error($this->user->lang['NO_MATCHING_STYLES_FOUND'] . adm_back_link($this->u_action), E_USER_WARNING);
 		}
+
+		// Read style configuration file
+		$style_cfg = $this->read_style_cfg($style['style_path']);
 
 		// Find all available parent styles
 		$list = $this->find_possible_parents($styles, $id);
@@ -538,7 +569,8 @@ class acp_styles
 						$this->cache->purge();
 					}
 				}
-				add_log('admin', 'LOG_STYLE_EDIT_DETAILS', $style['style_name']);
+
+				$phpbb_log->add('admin', $user->data['user_id'], $user->ip, 'LOG_STYLE_EDIT_DETAILS', false, array($style['style_name']));
 			}
 
 			// Update default style
@@ -549,7 +581,7 @@ class acp_styles
 				{
 					trigger_error($this->user->lang['STYLE_DEFAULT_CHANGE_INACTIVE'] . adm_back_link($update_action), E_USER_WARNING);
 				}
-				set_config('default_style', $id);
+				$this->config->set('default_style', $id);
 				$this->cache->purge();
 			}
 
@@ -579,6 +611,7 @@ class acp_styles
 			'STYLE_ID'			=> $style['style_id'],
 			'STYLE_NAME'		=> htmlspecialchars($style['style_name']),
 			'STYLE_PATH'		=> htmlspecialchars($style['style_path']),
+			'STYLE_VERSION'		=> htmlspecialchars($style_cfg['style_version']),
 			'STYLE_COPYRIGHT'	=> strip_tags($style['style_copyright']),
 			'STYLE_PARENT'		=> $style['style_parent_id'],
 			'S_STYLE_ACTIVE'	=> $style['style_active'],
@@ -932,6 +965,7 @@ class acp_styles
 			// Style data
 			'STYLE_ID'		=> $style['style_id'],
 			'STYLE_NAME'	=> htmlspecialchars($style['style_name']),
+			'STYLE_PHPBB_VERSION'	=> $this->read_style_cfg($style['style_path'])['phpbb_version'],
 			'STYLE_PATH'	=> htmlspecialchars($style['style_path']),
 			'STYLE_COPYRIGHT'	=> strip_tags($style['style_copyright']),
 			'STYLE_ACTIVE'	=> $style['style_active'],
@@ -977,11 +1011,14 @@ class acp_styles
 				'L_ACTION'	=> $this->user->lang['EXPORT']
 			); */
 
-			// Uninstall
-			$actions[] = array(
-				'U_ACTION'	=> $this->u_action . '&amp;action=uninstall&amp;hash=' . generate_link_hash('uninstall') . '&amp;id=' . $style['style_id'],
-				'L_ACTION'	=> $this->user->lang['STYLE_UNINSTALL']
-			);
+			if ($style['style_name'] !== 'prosilver')
+			{
+				// Uninstall
+				$actions[] = array(
+					'U_ACTION'	=> $this->u_action . '&amp;action=uninstall&amp;hash=' . generate_link_hash('uninstall') . '&amp;id=' . $style['style_id'],
+					'L_ACTION'	=> $this->user->lang['STYLE_UNINSTALL']
+				);
+			}
 
 			// Preview
 			$actions[] = array(
@@ -1102,7 +1139,14 @@ class acp_styles
 	*/
 	protected function read_style_cfg($dir)
 	{
+		// This should never happen, we give them a red warning because of its relevance.
+		if (!file_exists($this->styles_path . $dir . '/style.cfg'))
+		{
+			trigger_error($this->user->lang('NO_STYLE_CFG', $dir), E_USER_WARNING);
+		}
+
 		static $required = array('name', 'phpbb_version', 'copyright');
+
 		$cfg = parse_cfg_file($this->styles_path . $dir . '/style.cfg');
 
 		// Check if it is a valid file
@@ -1135,6 +1179,8 @@ class acp_styles
 	*/
 	protected function install_style($style)
 	{
+		global $user, $phpbb_log;
+
 		// Generate row
 		$sql_ary = array();
 		foreach ($style as $key => $value)
@@ -1156,7 +1202,7 @@ class acp_styles
 
 		$this->db->sql_transaction('commit');
 
-		add_log('admin', 'LOG_STYLE_ADD', $sql_ary['style_name']);
+		$phpbb_log->add('admin', $user->data['user_id'], $user->ip, 'LOG_STYLE_ADD', false, array($sql_ary['style_name']));
 
 		return $id;
 	}
@@ -1227,7 +1273,7 @@ class acp_styles
 
 		// Change default style for users
 		$sql = 'UPDATE ' . USERS_TABLE . '
-			SET user_style = 0
+			SET user_style = ' . (int) $this->default_style . '
 			WHERE user_style = ' . $id;
 		$this->db->sql_query($sql);
 
@@ -1333,18 +1379,18 @@ class acp_styles
 		}
 
 		// Hardcoded template bitfield to add for new templates
+		$default_bitfield = '1111111111111';
+
 		$bitfield = new bitfield();
-		$bitfield->set(0);
-		$bitfield->set(1);
-		$bitfield->set(2);
-		$bitfield->set(3);
-		$bitfield->set(4);
-		$bitfield->set(8);
-		$bitfield->set(9);
-		$bitfield->set(11);
-		$bitfield->set(12);
-		$value = $bitfield->get_base64();
-		return $value;
+		for ($i = 0; $i < strlen($default_bitfield); $i++)
+		{
+			if ($default_bitfield[$i] == '1')
+			{
+				$bitfield->set($i);
+			}
+		}
+
+		return $bitfield->get_base64();
 	}
 
 }
