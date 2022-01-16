@@ -28,14 +28,14 @@ class ucp_main
 	var $p_master;
 	var $u_action;
 
-	function ucp_main(&$p_master)
+	function __construct($p_master)
 	{
-		$this->p_master = &$p_master;
+		$this->p_master = $p_master;
 	}
 
 	function main($id, $mode)
 	{
-		global $config, $db, $user, $auth, $template, $phpbb_root_path, $phpEx;
+		global $config, $db, $user, $auth, $template, $phpbb_root_path, $phpEx, $phpbb_dispatcher;
 		global $request;
 
 		switch ($mode)
@@ -77,6 +77,22 @@ class ucp_main
 				// If the user can't see any forums, he can't read any posts because fid of 0 is invalid
 				if (!empty($forum_ary))
 				{
+					/**
+					 * Modify sql variables before query is processed
+					 *
+					 * @event core.ucp_main_front_modify_sql
+					 * @var string	sql_select	SQL select
+					 * @var string  sql_from	SQL from
+					 * @var array   forum_ary	Forum array
+					 * @since 3.2.4-RC1
+					 */
+					$vars = array(
+						'sql_select',
+						'sql_from',
+						'forum_ary',
+					);
+					extract($phpbb_dispatcher->trigger_event('core.ucp_main_front_modify_sql', compact($vars)));
+
 					$sql = "SELECT t.* $sql_select
 						FROM $sql_from
 						WHERE t.topic_type = " . POST_GLOBAL . '
@@ -144,7 +160,7 @@ class ucp_main
 						$folder_img .= '_mine';
 					}
 
-					$template->assign_block_vars('topicrow', array(
+					$topicrow = array(
 						'FORUM_ID'					=> $forum_id,
 						'TOPIC_ID'					=> $topic_id,
 						'TOPIC_AUTHOR'				=> get_username_string('username', $row['topic_poster'], $row['topic_first_poster_name'], $row['topic_first_poster_colour']),
@@ -171,8 +187,30 @@ class ucp_main
 						'U_LAST_POST'			=> append_sid("{$phpbb_root_path}viewtopic.$phpEx", "f=$forum_id&amp;t=$topic_id&amp;p=" . $row['topic_last_post_id']) . '#p' . $row['topic_last_post_id'],
 						'U_LAST_POST_AUTHOR'	=> get_username_string('profile', $row['topic_last_poster_id'], $row['topic_last_poster_name'], $row['topic_last_poster_colour']),
 						'U_NEWEST_POST'			=> append_sid("{$phpbb_root_path}viewtopic.$phpEx", "f=$forum_id&amp;t=$topic_id&amp;view=unread") . '#unread',
-						'U_VIEW_TOPIC'			=> append_sid("{$phpbb_root_path}viewtopic.$phpEx", "f=$forum_id&amp;t=$topic_id"))
+						'U_VIEW_TOPIC'			=> append_sid("{$phpbb_root_path}viewtopic.$phpEx", "f=$forum_id&amp;t=$topic_id"),
 					);
+
+					/**
+					 * Add template variables to a front topics row.
+					 *
+					 * @event core.ucp_main_front_modify_template_vars
+					 * @var array	topicrow		Array containing the template variables for the row
+					 * @var array   row    	        Array containing the subscribed forum row data
+					 * @var int     forum_id        Forum ID
+					 * @var string  folder_img		Folder image
+					 * @var string  folder_alt      Alt text for the folder image
+					 * @since 3.2.4-RC1
+					 */
+					$vars = array(
+						'topicrow',
+						'row',
+						'forum_id',
+						'folder_img',
+						'folder_alt',
+					);
+					extract($phpbb_dispatcher->trigger_event('core.ucp_main_front_modify_template_vars', compact($vars)));
+
+					$template->assign_block_vars('topicrow', $topicrow);
 				}
 
 				if ($config['load_user_activity'])
@@ -207,7 +245,10 @@ class ucp_main
 
 			case 'subscribed':
 
-				include($phpbb_root_path . 'includes/functions_display.' . $phpEx);
+				if (!function_exists('topic_status'))
+				{
+					include($phpbb_root_path . 'includes/functions_display.' . $phpEx);
+				}
 
 				$user->add_lang('viewforum');
 
@@ -215,18 +256,25 @@ class ucp_main
 
 				$unwatch = (isset($_POST['unwatch'])) ? true : false;
 
+				/**
+				 * Read and potentially modify the post data used to remove subscriptions to forums/topics
+				 *
+				 * @event core.ucp_main_subscribed_post_data
+				 * @since 3.1.10-RC1
+				 */
+				$phpbb_dispatcher->dispatch('core.ucp_main_subscribed_post_data');
+
 				if ($unwatch)
 				{
 					if (check_form_key('ucp_front_subscribed'))
 					{
-						$forums = array_keys(request_var('f', array(0 => 0)));
-						$topics = array_keys(request_var('t', array(0 => 0)));
-						$msg = '';
+						$forums = array_keys($request->variable('f', array(0 => 0)));
+						$topics = array_keys($request->variable('t', array(0 => 0)));
 
-						if (sizeof($forums) || sizeof($topics))
+						if (count($forums) || count($topics))
 						{
 							$l_unwatch = '';
-							if (sizeof($forums))
+							if (count($forums))
 							{
 								$sql = 'DELETE FROM ' . FORUMS_WATCH_TABLE . '
 									WHERE ' . $db->sql_in_set('forum_id', $forums) . '
@@ -236,7 +284,7 @@ class ucp_main
 								$l_unwatch .= '_FORUMS';
 							}
 
-							if (sizeof($topics))
+							if (count($topics))
 							{
 								$sql = 'DELETE FROM ' . TOPICS_WATCH_TABLE . '
 									WHERE ' . $db->sql_in_set('topic_id', $topics) . '
@@ -300,6 +348,20 @@ class ucp_main
 						$tracking_topics = ($tracking_topics) ? tracking_unserialize($tracking_topics) : array();
 					}
 
+					/**
+					 * Modify the query used to retrieve a list of subscribed forums
+					 *
+					 * @event core.ucp_main_subscribed_forums_modify_query
+					 * @var array	sql_array	       The subscribed forums query
+					 * @var array   forbidden_forums   The list of forbidden forums
+					 * @since 3.1.10-RC1
+					 */
+					$vars = array(
+						'sql_array',
+						'forbidden_forums',
+					);
+					extract($phpbb_dispatcher->trigger_event('core.ucp_main_subscribed_forums_modify_query', compact($vars)));
+
 					$sql = $db->sql_build_query('SELECT', $sql_array);
 					$result = $db->sql_query($sql);
 
@@ -341,7 +403,7 @@ class ucp_main
 							$last_post_time = $last_post_url = '';
 						}
 
-						$template->assign_block_vars('forumrow', array(
+						$template_vars = array(
 							'FORUM_ID'				=> $forum_id,
 							'FORUM_IMG_STYLE'		=> $folder_image,
 							'FORUM_FOLDER_IMG'		=> $user->img($folder_image, $folder_alt),
@@ -360,8 +422,36 @@ class ucp_main
 							'S_UNREAD_FORUM'		=> $unread_forum,
 
 							'U_LAST_POST'			=> $last_post_url,
-							'U_VIEWFORUM'			=> append_sid("{$phpbb_root_path}viewforum.$phpEx", 'f=' . $row['forum_id']))
+							'U_VIEWFORUM'			=> append_sid("{$phpbb_root_path}viewforum.$phpEx", 'f=' . $row['forum_id'])
 						);
+
+						/**
+						 * Add template variables to a subscribed forum row.
+						 *
+						 * @event core.ucp_main_subscribed_forum_modify_template_vars
+						 * @var array	template_vars	Array containing the template variables for the row
+						 * @var array   row    	        Array containing the subscribed forum row data
+						 * @var int     forum_id        Forum ID
+						 * @var string  folder_image	Folder image
+						 * @var string  folder_alt      Alt text for the folder image
+						 * @var bool    unread_forum    Whether the forum has unread content or not
+						 * @var string  last_post_time  The time of the most recent post, expressed as a formatted date string
+						 * @var string  last_post_url   The URL of the most recent post in the forum
+						 * @since 3.1.10-RC1
+						 */
+						$vars = array(
+							'template_vars',
+							'row',
+							'forum_id',
+							'folder_image',
+							'folder_alt',
+							'unread_forum',
+							'last_post_time',
+							'last_post_url',
+						);
+						extract($phpbb_dispatcher->trigger_event('core.ucp_main_subscribed_forum_modify_template_vars', compact($vars)));
+
+						$template->assign_block_vars('forumrow', $template_vars);
 					}
 					$db->sql_freeresult($result);
 				}
@@ -394,17 +484,20 @@ class ucp_main
 					break;
 				}
 
-				include($phpbb_root_path . 'includes/functions_display.' . $phpEx);
+				if (!function_exists('topic_status'))
+				{
+					include($phpbb_root_path . 'includes/functions_display.' . $phpEx);
+				}
 
 				$user->add_lang('viewforum');
 
 				if (isset($_POST['unbookmark']))
 				{
 					$s_hidden_fields = array('unbookmark' => 1);
-					$topics = (isset($_POST['t'])) ? array_keys(request_var('t', array(0 => 0))) : array();
+					$topics = (isset($_POST['t'])) ? array_keys($request->variable('t', array(0 => 0))) : array();
 					$url = $this->u_action;
 
-					if (!sizeof($topics))
+					if (!count($topics))
 					{
 						trigger_error('NO_BOOKMARKS_SELECTED');
 					}
@@ -453,13 +546,16 @@ class ucp_main
 				$draft_subject = $draft_message = '';
 				add_form_key('ucp_draft');
 
+				include_once($phpbb_root_path . 'includes/message_parser.' . $phpEx);
+				$message_parser = new parse_message();
+
 				if ($delete)
 				{
 					if (check_form_key('ucp_draft'))
 					{
-						$drafts = array_keys(request_var('d', array(0 => 0)));
+						$drafts = array_keys($request->variable('d', array(0 => 0)));
 
-						if (sizeof($drafts))
+						if (count($drafts))
 						{
 							$sql = 'DELETE FROM ' . DRAFTS_TABLE . '
 								WHERE ' . $db->sql_in_set('draft_id', $drafts) . '
@@ -480,15 +576,25 @@ class ucp_main
 
 				if ($submit && $edit)
 				{
-					$draft_subject = utf8_normalize_nfc(request_var('subject', '', true));
-					$draft_message = utf8_normalize_nfc(request_var('message', '', true));
+					$draft_subject = $request->variable('subject', '', true);
+					$draft_message = $request->variable('message', '', true);
 					if (check_form_key('ucp_draft'))
 					{
 						if ($draft_message && $draft_subject)
 						{
+							// $auth->acl_gets can't be used here because it will check for global forum permissions in this case
+							// In general we don't need too harsh checking here for permissions, as this will be handled later when submitting
+							$bbcode_status = $auth->acl_get('u_pm_bbcode') || $auth->acl_getf_global('f_bbcode');
+							$smilies_status = $auth->acl_get('u_pm_smilies') || $auth->acl_getf_global('f_smilies');
+							$img_status = $auth->acl_get('u_pm_img') || $auth->acl_getf_global('f_img');
+							$flash_status = $auth->acl_get('u_pm_flash') || $auth->acl_getf_global('f_flash');
+
+							$message_parser->message = $draft_message;
+							$message_parser->parse($bbcode_status, $config['allow_post_links'], $smilies_status, $img_status, $flash_status, true, $config['allow_post_links']);
+
 							$draft_row = array(
 								'draft_subject' => $draft_subject,
-								'draft_message' => $draft_message
+								'draft_message' => $message_parser->message,
 							);
 
 							$sql = 'UPDATE ' . DRAFTS_TABLE . '
@@ -545,7 +651,7 @@ class ucp_main
 				}
 				$db->sql_freeresult($result);
 
-				if (sizeof($topic_ids))
+				if (count($topic_ids))
 				{
 					$sql = 'SELECT topic_id, forum_id, topic_title
 						FROM ' . TOPICS_TABLE . '
@@ -590,9 +696,16 @@ class ucp_main
 						$insert_url = append_sid("{$phpbb_root_path}ucp.$phpEx", "i=$id&amp;mode=compose&amp;d=" . $draft['draft_id']);
 					}
 
+					if (!$submit)
+					{
+						$message_parser->message = $draft['draft_message'];
+						$message_parser->decode_message();
+						$draft_message = $message_parser->message;
+					}
+
 					$template_row = array(
 						'DATE'			=> $user->format_date($draft['save_time']),
-						'DRAFT_MESSAGE'	=> ($submit) ? $draft_message : $draft['draft_message'],
+						'DRAFT_MESSAGE'	=> $draft_message,
 						'DRAFT_SUBJECT'	=> ($submit) ? $draft_subject : $draft['draft_subject'],
 						'TITLE'			=> $title,
 
@@ -643,11 +756,12 @@ class ucp_main
 	*/
 	function assign_topiclist($mode = 'subscribed', $forbidden_forum_ary = array())
 	{
-		global $user, $db, $template, $config, $cache, $auth, $phpbb_root_path, $phpEx, $phpbb_container;
+		global $user, $db, $template, $config, $cache, $auth, $phpbb_root_path, $phpEx, $phpbb_container, $request, $phpbb_dispatcher;
 
-		$table = ($mode == 'subscribed') ? TOPICS_WATCH_TABLE : BOOKMARKS_TABLE;
-		$start = request_var('start', 0);
+		/* @var $pagination \phpbb\pagination */
 		$pagination = $phpbb_container->get('pagination');
+		$table = ($mode == 'subscribed') ? TOPICS_WATCH_TABLE : BOOKMARKS_TABLE;
+		$start = $request->variable('start', 0);
 
 		// Grab icons
 		$icons = $cache->obtain_icons();
@@ -664,6 +778,23 @@ class ucp_main
 				AND i.user_id = ' . $user->data['user_id'] . '
 				AND ' . $db->sql_in_set('t.forum_id', $forbidden_forum_ary, true, true),
 		);
+
+		/**
+		 * Modify the query used to retrieve the count of subscribed/bookmarked topics
+		 *
+		 * @event core.ucp_main_topiclist_count_modify_query
+		 * @var array	sql_array	          The subscribed/bookmarked topics query
+		 * @var array   forbidden_forum_ary   The list of forbidden forums
+		 * @var string  mode                  The type of topic list ('subscribed' or 'bookmarks')
+		 * @since 3.1.10-RC1
+		 */
+		$vars = array(
+			'sql_array',
+			'forbidden_forum_ary',
+			'mode',
+		);
+		extract($phpbb_dispatcher->trigger_event('core.ucp_main_topiclist_count_modify_query', compact($vars)));
+
 		$sql = $db->sql_build_query('SELECT', $sql_array);
 		$result = $db->sql_query($sql);
 		$topics_count = (int) $db->sql_fetchfield('topics_count');
@@ -732,6 +863,22 @@ class ucp_main
 			$sql_array['SELECT'] .= ', tp.topic_posted';
 		}
 
+		/**
+		 * Modify the query used to retrieve the list of subscribed/bookmarked topics
+		 *
+		 * @event core.ucp_main_topiclist_modify_query
+		 * @var array	sql_array	          The subscribed/bookmarked topics query
+		 * @var array   forbidden_forum_ary   The list of forbidden forums
+		 * @var string  mode                  The type of topic list ('subscribed' or 'bookmarks')
+		 * @since 3.1.10-RC1
+		 */
+		$vars = array(
+			'sql_array',
+			'forbidden_forum_ary',
+			'mode',
+		);
+		extract($phpbb_dispatcher->trigger_event('core.ucp_main_topiclist_modify_query', compact($vars)));
+
 		$sql = $db->sql_build_query('SELECT', $sql_array);
 		$result = $db->sql_query_limit($sql, $config['topics_per_page'], $start);
 
@@ -769,6 +916,7 @@ class ucp_main
 			}
 		}
 
+		/* @var $phpbb_content_visibility \phpbb\content_visibility */
 		$phpbb_content_visibility = $phpbb_container->get('content.visibility');
 
 		foreach ($topic_list as $topic_id)
@@ -796,7 +944,7 @@ class ucp_main
 			$view_topic_url = append_sid("{$phpbb_root_path}viewtopic.$phpEx", $view_topic_url_params);
 
 			// Send vars to template
-			$template->assign_block_vars('topicrow', array(
+			$template_vars = array(
 				'FORUM_ID'					=> $forum_id,
 				'TOPIC_ID'					=> $topic_id,
 				'FIRST_POST_TIME'			=> $user->format_date($row['topic_time']),
@@ -838,7 +986,41 @@ class ucp_main
 				'U_LAST_POST'			=> append_sid("{$phpbb_root_path}viewtopic.$phpEx", $view_topic_url_params . '&amp;p=' . $row['topic_last_post_id']) . '#p' . $row['topic_last_post_id'],
 				'U_VIEW_TOPIC'			=> $view_topic_url,
 				'U_VIEW_FORUM'			=> append_sid("{$phpbb_root_path}viewforum.$phpEx", 'f=' . $forum_id),
-			));
+			);
+
+			/**
+			 * Add template variables to a subscribed/bookmarked topic row.
+			 *
+			 * @event core.ucp_main_topiclist_topic_modify_template_vars
+			 * @var array	template_vars	Array containing the template variables for the row
+			 * @var array   row    	        Array containing the subscribed/bookmarked topic row data
+			 * @var int     forum_id        ID of the forum containing the topic
+			 * @var int     topic_id        Topic ID
+			 * @var int     replies         Number of replies in the topic
+			 * @var string  topic_type      Topic type
+			 * @var string  folder_img      Folder image
+			 * @var string  folder_alt      Alt text for the folder image
+			 * @var array   icons           Array containing topic icons
+			 * @var bool    unread_topic    Whether the topic has unread content or not
+			 * @var string  view_topic_url  The URL of the topic
+			 * @since 3.1.10-RC1
+			 */
+			$vars = array(
+				'template_vars',
+				'row',
+				'forum_id',
+				'topic_id',
+				'replies',
+				'topic_type',
+				'folder_img',
+				'folder_alt',
+				'icons',
+				'unread_topic',
+				'view_topic_url',
+			);
+			extract($phpbb_dispatcher->trigger_event('core.ucp_main_topiclist_topic_modify_template_vars', compact($vars)));
+
+			$template->assign_block_vars('topicrow', $template_vars);
 
 			$pagination->generate_template_pagination(append_sid("{$phpbb_root_path}viewtopic.$phpEx", 'f=' . $row['forum_id'] . "&amp;t=$topic_id"), 'topicrow.pagination', 'start', $replies + 1, $config['posts_per_page'], 1, true, true);
 		}

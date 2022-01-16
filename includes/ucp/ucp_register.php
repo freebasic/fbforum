@@ -29,7 +29,7 @@ class ucp_register
 
 	function main($id, $mode)
 	{
-		global $config, $db, $user, $auth, $template, $phpbb_root_path, $phpEx;
+		global $config, $db, $user, $template, $phpbb_root_path, $phpEx;
 		global $request, $phpbb_container, $phpbb_dispatcher;
 
 		//
@@ -42,8 +42,30 @@ class ucp_register
 		$coppa			= $request->is_set('coppa') ? (int) $request->variable('coppa', false) : false;
 		$agreed			= $request->variable('agreed', false);
 		$submit			= $request->is_set_post('submit');
-		$change_lang	= request_var('change_lang', '');
-		$user_lang		= request_var('lang', $user->lang_name);
+		$change_lang	= $request->variable('change_lang', '');
+		$user_lang		= $request->variable('lang', $user->lang_name);
+
+		/**
+		* Add UCP register data before they are assigned to the template or submitted
+		*
+		* To assign data to the template, use $template->assign_vars()
+		*
+		* @event core.ucp_register_requests_after
+		* @var	bool	coppa		Is set coppa
+		* @var	bool	agreed		Did user agree to coppa?
+		* @var	bool	submit		Is set post submit?
+		* @var	string	change_lang	Change language request
+		* @var	string	user_lang	User language request
+		* @since 3.1.11-RC1
+		*/
+		$vars = array(
+			'coppa',
+			'agreed',
+			'submit',
+			'change_lang',
+			'user_lang',
+		);
+		extract($phpbb_dispatcher->trigger_event('core.ucp_register_requests_after', compact($vars)));
 
 		if ($agreed)
 		{
@@ -77,6 +99,7 @@ class ucp_register
 			}
 		}
 
+		/* @var $cp \phpbb\profilefields\manager */
 		$cp = $phpbb_container->get('profilefields.manager');
 
 		$error = $cp_data = $cp_error = array();
@@ -88,6 +111,7 @@ class ucp_register
 		if (!empty($login_link_data))
 		{
 			// Confirm that we have all necessary data
+			/* @var $provider_collection \phpbb\auth\provider_collection */
 			$provider_collection = $phpbb_container->get('auth.provider_collection');
 			$auth_provider = $provider_collection->get_provider($request->variable('auth_provider', ''));
 
@@ -113,10 +137,10 @@ class ucp_register
 			{
 				// We do not include the password
 				$s_hidden_fields = array_merge($s_hidden_fields, array(
-					'username'			=> utf8_normalize_nfc(request_var('username', '', true)),
-					'email'				=> strtolower(request_var('email', '')),
+					'username'			=> $request->variable('username', '', true),
+					'email'				=> strtolower($request->variable('email', '')),
 					'lang'				=> $user->lang_name,
-					'tz'				=> request_var('tz', $config['board_timezone']),
+					'tz'				=> $request->variable('tz', $config['board_timezone']),
 				));
 
 			}
@@ -142,8 +166,8 @@ class ucp_register
 					->format($user->lang['DATE_FORMAT'], true);
 				unset($now);
 
-				$template->assign_vars(array(
-					'S_LANG_OPTIONS'	=> (sizeof($lang_row) > 1) ? language_select($user_lang) : '',
+				$template_vars = array(
+					'S_LANG_OPTIONS'	=> (count($lang_row) > 1) ? language_select($user_lang) : '',
 					'L_COPPA_NO'		=> sprintf($user->lang['UCP_COPPA_BEFORE'], $coppa_birthday),
 					'L_COPPA_YES'		=> sprintf($user->lang['UCP_COPPA_ON_AFTER'], $coppa_birthday),
 
@@ -156,12 +180,12 @@ class ucp_register
 
 					'COOKIE_NAME'		=> $config['cookie_name'],
 					'COOKIE_PATH'		=> $config['cookie_path'],
-				));
+				);
 			}
 			else
 			{
-				$template->assign_vars(array(
-					'S_LANG_OPTIONS'	=> (sizeof($lang_row) > 1) ? language_select($user_lang) : '',
+				$template_vars = array(
+					'S_LANG_OPTIONS'	=> (count($lang_row) > 1) ? language_select($user_lang) : '',
 					'L_TERMS_OF_USE'	=> sprintf($user->lang['TERMS_OF_USE_CONTENT'], $config['sitename'], generate_board_url()),
 
 					'S_SHOW_COPPA'		=> false,
@@ -171,10 +195,31 @@ class ucp_register
 
 					'COOKIE_NAME'		=> $config['cookie_name'],
 					'COOKIE_PATH'		=> $config['cookie_path'],
-					)
 				);
 			}
+
+			$tpl_name = 'ucp_agreement';
+
+			/**
+			* Allows to modify the agreements.
+			*
+			* @event core.ucp_register_agreement_modify_template_data
+			* @var	string	tpl_name			Template file
+			* @var	array	template_vars		Array with data about to be assigned to the template
+			* @var	array	s_hidden_fields		Array with hidden form elements
+			* @var	array	lang_row			Array with available languages, read only
+			* @since 3.2.2-RC1
+			*/
+			$vars = array('tpl_name', 'template_vars', 's_hidden_fields', 'lang_row');
+			extract($phpbb_dispatcher->trigger_event('core.ucp_register_agreement_modify_template_data', compact($vars)));
+
 			unset($lang_row);
+
+			$template_vars = array_merge($template_vars, array(
+				'S_HIDDEN_FIELDS' => build_hidden_fields($s_hidden_fields),
+			));
+
+			$template->assign_vars($template_vars);
 
 			/**
 			* Allows to modify the agreements.
@@ -183,10 +228,11 @@ class ucp_register
 			*
 			* @event core.ucp_register_agreement
 			* @since 3.1.6-RC1
+			* @deprecated 3.2.2-RC1 Replaced by core.ucp_register_agreement_modify_template_data and to be removed in 3.3.0-RC1
 			*/
 			$phpbb_dispatcher->dispatch('core.ucp_register_agreement');
 
-			$this->tpl_name = 'ucp_agreement';
+			$this->tpl_name = $tpl_name;
 			return;
 		}
 
@@ -200,12 +246,12 @@ class ucp_register
 		$timezone = $config['board_timezone'];
 
 		$data = array(
-			'username'			=> utf8_normalize_nfc(request_var('username', '', true)),
+			'username'			=> $request->variable('username', '', true),
 			'new_password'		=> $request->variable('new_password', '', true),
 			'password_confirm'	=> $request->variable('password_confirm', '', true),
-			'email'				=> strtolower(request_var('email', '')),
-			'lang'				=> basename(request_var('lang', $user->lang_name)),
-			'tz'				=> request_var('tz', $timezone),
+			'email'				=> strtolower($request->variable('email', '')),
+			'lang'				=> basename($request->variable('lang', $user->lang_name)),
+			'tz'				=> $request->variable('tz', $timezone),
 		);
 		/**
 		* Add UCP register data before they are assigned to the template or submitted
@@ -273,7 +319,7 @@ class ucp_register
 			// validate custom profile fields
 			$cp->submit_cp_field('register', $user->get_iso_lang_id(), $cp_data, $error);
 
-			if (!sizeof($error))
+			if (!count($error))
 			{
 				if ($data['new_password'] != $data['password_confirm'])
 				{
@@ -294,7 +340,7 @@ class ucp_register
 			$vars = array('submit', 'data', 'cp_data', 'error');
 			extract($phpbb_dispatcher->trigger_event('core.ucp_register_data_after', compact($vars)));
 
-			if (!sizeof($error))
+			if (!count($error))
 			{
 				$server_url = generate_board_url();
 
@@ -334,6 +380,7 @@ class ucp_register
 				}
 
 				// Instantiate passwords manager
+				/* @var $passwords_manager \phpbb\passwords\manager */
 				$passwords_manager = $phpbb_container->get('passwords.manager');
 
 				$user_row = array(
@@ -434,11 +481,38 @@ class ucp_register
 						);
 					}
 
+					/**
+					* Modify messenger data before welcome mail is sent
+					*
+					* @event core.ucp_register_welcome_email_before
+					* @var	array		user_row	Array with user registration data
+					* @var	array		cp_data		Array with custom profile fields data
+					* @var	array		data		Array with current ucp registration data
+					* @var	string		message		Message to be displayed to the user after registration
+					* @var	string		server_url	Server URL
+					* @var	int			user_id		New user ID
+					* @var	string		user_actkey	User activation key
+					* @var	messenger	messenger	phpBB Messenger
+					* @since 3.2.4-RC1
+					*/
+					$vars = array(
+						'user_row',
+						'cp_data',
+						'data',
+						'message',
+						'server_url',
+						'user_id',
+						'user_actkey',
+						'messenger',
+					);
+					extract($phpbb_dispatcher->trigger_event('core.ucp_register_welcome_email_before', compact($vars)));
+
 					$messenger->send(NOTIFY_EMAIL);
 				}
 
 				if ($config['require_activation'] == USER_ACTIVATION_ADMIN)
 				{
+					/* @var $phpbb_notifications \phpbb\notification\manager */
 					$phpbb_notifications = $phpbb_container->get('notification_manager');
 					$phpbb_notifications->add_notifications('notification.type.admin_activate_user', array(
 						'user_id'		=> $user_id,
@@ -460,6 +534,30 @@ class ucp_register
 					}
 				}
 
+				/**
+				* Perform additional actions after user registration
+				*
+				* @event core.ucp_register_register_after
+				* @var	array		user_row	Array with user registration data
+				* @var	array		cp_data		Array with custom profile fields data
+				* @var	array		data		Array with current ucp registration data
+				* @var	string		message		Message to be displayed to the user after registration
+				* @var	string		server_url	Server URL
+				* @var	int			user_id		New user ID
+				* @var	string		user_actkey	User activation key
+				* @since 3.2.4-RC1
+				*/
+				$vars = array(
+					'user_row',
+					'cp_data',
+					'data',
+					'message',
+					'server_url',
+					'user_id',
+					'user_actkey',
+				);
+				extract($phpbb_dispatcher->trigger_event('core.ucp_register_register_after', compact($vars)));
+
 				$message = $message . '<br /><br />' . sprintf($user->lang['RETURN_INDEX'], '<a href="' . append_sid("{$phpbb_root_path}index.$phpEx") . '">', '</a>');
 				trigger_error($message);
 			}
@@ -479,8 +577,6 @@ class ucp_register
 		{
 			$s_hidden_fields = array_merge($s_hidden_fields, $captcha->get_hidden_fields());
 		}
-		$s_hidden_fields = build_hidden_fields($s_hidden_fields);
-		$confirm_image = '';
 
 		// Visual Confirmation - Show images
 		if ($config['enable_confirm'])
@@ -503,9 +599,10 @@ class ucp_register
 			break;
 		}
 
-		$timezone_selects = phpbb_timezone_select($template, $user, $data['tz'], true);
-		$template->assign_vars(array(
-			'ERROR'				=> (sizeof($error)) ? implode('<br />', $error) : '',
+		// Assign template vars for timezone select
+		phpbb_timezone_select($template, $user, $data['tz'], true);
+
+		$template_vars = array(
 			'USERNAME'			=> $data['username'],
 			'PASSWORD'			=> $data['new_password'],
 			'PASSWORD_CONFIRM'	=> $data['password_confirm'],
@@ -520,12 +617,40 @@ class ucp_register
 			'S_CONFIRM_REFRESH'	=> ($config['enable_confirm'] && $config['confirm_refresh']) ? true : false,
 			'S_REGISTRATION'	=> true,
 			'S_COPPA'			=> $coppa,
-			'S_HIDDEN_FIELDS'	=> $s_hidden_fields,
 			'S_UCP_ACTION'		=> append_sid("{$phpbb_root_path}ucp.$phpEx", 'mode=register'),
 
 			'COOKIE_NAME'		=> $config['cookie_name'],
 			'COOKIE_PATH'		=> $config['cookie_path'],
+		);
+
+		$tpl_name = 'ucp_register';
+
+		/**
+		* Modify template data on the registration page
+		*
+		* @event core.ucp_register_modify_template_data
+		* @var	array	template_vars		Array with template data
+		* @var	array	data				Array with user data, read only
+		* @var	array	error				Array with errors
+		* @var	array	s_hidden_fields		Array with hidden field elements
+		* @var	string	tpl_name			Template name
+		* @since 3.2.2-RC1
+		*/
+		$vars = array(
+			'template_vars',
+			'data',
+			'error',
+			's_hidden_fields',
+			'tpl_name',
+		);
+		extract($phpbb_dispatcher->trigger_event('core.ucp_register_modify_template_data', compact($vars)));
+
+		$template_vars = array_merge($template_vars, array(
+			'ERROR'				=> (count($error)) ? implode('<br />', $error) : '',
+			'S_HIDDEN_FIELDS'	=> build_hidden_fields($s_hidden_fields),
 		));
+
+		$template->assign_vars($template_vars);
 
 		//
 		$user->profile_fields = array();
@@ -534,8 +659,7 @@ class ucp_register
 		$cp->generate_profile_fields('register', $user->get_iso_lang_id());
 
 		//
-		$this->tpl_name = 'ucp_register';
-		$this->page_title = 'UCP_REGISTRATION';
+		$this->tpl_name = $tpl_name;
 	}
 
 	/**

@@ -134,7 +134,7 @@ class config implements \phpbb\db\migration\tool\tool_interface
 
 			case 'remove':
 				$call = 'add';
-				if (sizeof($arguments) == 1)
+				if (count($arguments) == 1)
 				{
 					$arguments[] = '';
 				}
@@ -149,6 +149,11 @@ class config implements \phpbb\db\migration\tool\tool_interface
 					$arguments[1],
 					$arguments[0],
 				);
+			break;
+
+			case 'reverse':
+				// Reversing a reverse is just the call itself
+				$call = array_shift($arguments);
 			break;
 		}
 

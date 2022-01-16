@@ -442,7 +442,7 @@ class permission implements \phpbb\db\migration\tool\tool_interface
 						}
 					);
 
-					if (sizeof($auth_option))
+					if (count($auth_option))
 					{
 						return $this->permission_set($role_name, $auth_option, 'role', $has_permission);
 					}
@@ -636,6 +636,11 @@ class permission implements \phpbb\db\migration\tool\tool_interface
 					$arguments[1],
 					$arguments[0],
 				);
+			break;
+
+			case 'reverse':
+				// Reversing a reverse is just the call itself
+				$call = array_shift($arguments);
 			break;
 		}
 

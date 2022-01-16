@@ -27,6 +27,9 @@ class acp_attachments
 	/** @var \phpbb\config\config */
 	protected $config;
 
+	/** @var \phpbb\language\language */
+	protected $language;
+
 	/** @var ContainerBuilder */
 	protected $phpbb_container;
 
@@ -36,27 +39,36 @@ class acp_attachments
 	/** @var \phpbb\user */
 	protected $user;
 
+	/** @var  \phpbb\filesystem\filesystem_interface */
+	protected $filesystem;
+
+	/** @var \phpbb\attachment\manager */
+	protected $attachment_manager;
+
 	public $id;
 	public $u_action;
 	protected $new_config;
 
 	function main($id, $mode)
 	{
-		global $db, $user, $auth, $template, $cache, $phpbb_container;
-		global $config, $phpbb_admin_path, $phpbb_root_path, $phpEx;
+		global $db, $user, $auth, $template, $cache, $phpbb_container, $phpbb_filesystem, $phpbb_dispatcher;
+		global $config, $phpbb_admin_path, $phpbb_root_path, $phpEx, $phpbb_log, $request;
 
 		$this->id = $id;
 		$this->db = $db;
 		$this->config = $config;
+		$this->language = $phpbb_container->get('language');
 		$this->template = $template;
 		$this->user = $user;
 		$this->phpbb_container = $phpbb_container;
+		$this->filesystem = $phpbb_filesystem;
+		$this->attachment_manager = $phpbb_container->get('attachment.manager');
 
 		$user->add_lang(array('posting', 'viewtopic', 'acp/attachments'));
 
 		$error = $notify = array();
 		$submit = (isset($_POST['submit'])) ? true : false;
-		$action = request_var('action', '');
+		$action = $request->variable('action', '');
 
 		$form_key = 'acp_attach';
 		add_form_key($form_key);
@@ -120,7 +132,7 @@ class acp_attachments
 				$s_assigned_groups = array();
 				while ($row = $db->sql_fetchrow($result))
 				{
-					$row['group_name'] = (isset($user->lang['EXT_GROUP_' . $row['group_name']])) ? $user->lang['EXT_GROUP_' . $row['group_name']] : $row['group_name'];
+					$row['group_name'] = $this->language->is_set('EXT_GROUP_' . utf8_strtoupper($row['group_name'])) ? $this->language->lang('EXT_GROUP_' . utf8_strtoupper($row['group_name'])) : $row['group_name'];
 					$s_assigned_groups[$row['cat_id']][] = $row['group_name'];
 				}
 				$db->sql_freeresult($result);
@@ -156,21 +168,32 @@ class acp_attachments
 						'img_create_thumbnail'		=> array('lang' => 'CREATE_THUMBNAIL',		'validate' => 'bool',	'type' => 'radio:yes_no', 'explain' => true),
 						'img_max_thumb_width'		=> array('lang' => 'MAX_THUMB_WIDTH',		'validate' => 'int:0:999999999999999',	'type' => 'number:0:999999999999999', 'explain' => true, 'append' => ' ' . $user->lang['PIXEL']),
 						'img_min_thumb_filesize'	=> array('lang' => 'MIN_THUMB_FILESIZE',	'validate' => 'int:0:999999999999999',	'type' => 'number:0:999999999999999', 'explain' => true, 'append' => ' ' . $user->lang['BYTES']),
-						'img_imagick'				=> array('lang' => 'IMAGICK_PATH',			'validate' => 'absolute_path',	'type' => 'text:20:200', 'explain' => true, 'append' => '&nbsp;&nbsp;<span>[ <a href="' . $this->u_action . '&amp;action=imgmagick">' . $user->lang['SEARCH_IMAGICK'] . '</a> ]</span>'),
 						'img_max'					=> array('lang' => 'MAX_IMAGE_SIZE',		'validate' => 'int:0:9999',	'type' => 'dimension:0:9999', 'explain' => true, 'append' => ' ' . $user->lang['PIXEL']),
 						'img_link'					=> array('lang' => 'IMAGE_LINK_SIZE',		'validate' => 'int:0:9999',	'type' => 'dimension:0:9999', 'explain' => true, 'append' => ' ' . $user->lang['PIXEL']),
 					)
 				);
 
+				/**
+				* Event to add and/or modify acp_attachement configurations
+				*
+				* @event core.acp_attachments_config_edit_add
+				* @var	array	display_vars	Array of config values to display and process
+				* @var	string	mode			Mode of the config page we are displaying
+				* @var	boolean	submit			Do we display the form or process the submission
+				* @since 3.1.11-RC1
+				*/
+				$vars = array('display_vars', 'mode', 'submit');
+				extract($phpbb_dispatcher->trigger_event('core.acp_attachments_config_edit_add', compact($vars)));
+
 				$this->new_config = $config;
-				$cfg_array = (isset($_REQUEST['config'])) ? request_var('config', array('' => '')) : $this->new_config;
+				$cfg_array = (isset($_REQUEST['config'])) ? $request->variable('config', array('' => '')) : $this->new_config;
 				$error = array();
 
 				// We validate the complete config if whished
 				validate_config_vars($display_vars['vars'], $cfg_array, $error);
 
 				// Do not write values if there is an error
-				if (sizeof($error))
+				if (count($error))
 				{
 					$submit = false;
 				}
@@ -187,13 +210,13 @@ class acp_attachments
 
 					if (in_array($config_name, array('attachment_quota', 'max_filesize', 'max_filesize_pm')))
 					{
-						$size_var = request_var($config_name, '');
+						$size_var = $request->variable($config_name, '');
 						$this->new_config[$config_name] = $config_value = ($size_var == 'kb') ? round($config_value * 1024) : (($size_var == 'mb') ? round($config_value * 1048576) : $config_value);
 					}
 
 					if ($submit)
 					{
-						set_config($config_name, $config_value);
+						$config->set($config_name, $config_value);
 					}
 				}
 
@@ -201,50 +224,18 @@ class acp_attachments
 
 				if ($submit)
 				{
-					add_log('admin', 'LOG_CONFIG_ATTACH');
+					$phpbb_log->add('admin', $user->data['user_id'], $user->ip, 'LOG_CONFIG_ATTACH');
 
 					// Check Settings
 					$this->test_upload($error, $this->new_config['upload_path'], false);
 
-					if (!sizeof($error))
+					if (!count($error))
 					{
 						trigger_error($user->lang['CONFIG_UPDATED'] . adm_back_link($this->u_action));
 					}
 				}
 
 				$template->assign_var('S_ATTACHMENT_SETTINGS', true);
-
-				if ($action == 'imgmagick')
-				{
-					$this->new_config['img_imagick'] = $this->search_imagemagick();
-				}
-
-				// We strip eventually manual added convert program, we only want the patch
-				if ($this->new_config['img_imagick'])
-				{
-					// Change path separator
-					$this->new_config['img_imagick'] = str_replace('\\', '/', $this->new_config['img_imagick']);
-					$this->new_config['img_imagick'] = str_replace(array('convert', '.exe'), array('', ''), $this->new_config['img_imagick']);
-
-					// Check for trailing slash
-					if (substr($this->new_config['img_imagick'], -1) !== '/')
-					{
-						$this->new_config['img_imagick'] .= '/';
-					}
-				}
-
-				$supported_types = get_supported_image_types();
-
-				// Check Thumbnail Support
-				if (!$this->new_config['img_imagick'] && (!isset($supported_types['format']) || !sizeof($supported_types['format'])))
-				{
-					$this->new_config['img_create_thumbnail'] = 0;
-				}
-
-				$template->assign_vars(array(
-					'U_SEARCH_IMAGICK'		=> $this->u_action . '&amp;action=imgmagick',
-					'S_THUMBNAIL_SUPPORT'	=> (!$this->new_config['img_imagick'] && (!isset($supported_types['format']) || !sizeof($supported_types['format']))) ? false : true)
-				);
 
 				// Secure Download Options - Same procedure as with banning
 				$allow_deny = ($this->new_config['secure_allow_deny']) ? 'ALLOWED' : 'DISALLOWED';
@@ -270,7 +261,7 @@ class acp_attachments
 				$template->assign_vars(array(
 					'S_SECURE_DOWNLOADS'	=> $this->new_config['secure_downloads'],
 					'S_DEFINED_IPS'			=> ($defined_ips != '') ? true : false,
-					'S_WARNING'				=> (sizeof($error)) ? true : false,
+					'S_WARNING'				=> (count($error)) ? true : false,
 
 					'WARNING_MSG'			=> implode('<br />', $error),
 					'DEFINED_IPS'			=> $defined_ips,
@@ -337,13 +328,13 @@ class acp_attachments
 					if ($submit)
 					{
 						// Change Extensions ?
-						$extension_change_list	= request_var('extension_change_list', array(0));
-						$group_select_list		= request_var('group_select', array(0));
+						$extension_change_list	= $request->variable('extension_change_list', array(0));
+						$group_select_list		= $request->variable('group_select', array(0));
 
 						// Generate correct Change List
 						$extensions = array();
 
-						for ($i = 0, $size = sizeof($extension_change_list); $i < $size; $i++)
+						for ($i = 0, $size = count($extension_change_list); $i < $size; $i++)
 						{
 							$extensions[$extension_change_list[$i]]['group_id'] = $group_select_list[$i];
 						}
@@ -362,15 +353,15 @@ class acp_attachments
 									WHERE extension_id = ' . $row['extension_id'];
 								$db->sql_query($sql);
 
-								add_log('admin', 'LOG_ATTACH_EXT_UPDATE', $row['extension']);
+								$phpbb_log->add('admin', $user->data['user_id'], $user->ip, 'LOG_ATTACH_EXT_UPDATE', false, array($row['extension']));
 							}
 						}
 						$db->sql_freeresult($result);
 
 						// Delete Extension?
-						$extension_id_list = request_var('extension_id_list', array(0));
+						$extension_id_list = $request->variable('extension_id_list', array(0));
 
-						if (sizeof($extension_id_list))
+						if (count($extension_id_list))
 						{
 							$sql = 'SELECT extension
 								FROM ' . EXTENSIONS_TABLE . '
@@ -389,18 +380,18 @@ class acp_attachments
 								WHERE ' . $db->sql_in_set('extension_id', $extension_id_list);
 							$db->sql_query($sql);
 
-							add_log('admin', 'LOG_ATTACH_EXT_DEL', $extension_list);
+							$phpbb_log->add('admin', $user->data['user_id'], $user->ip, 'LOG_ATTACH_EXT_DEL', false, array($extension_list));
 						}
 					}
 
 					// Add Extension?
-					$add_extension			= strtolower(request_var('add_extension', ''));
-					$add_extension_group	= request_var('add_group_select', 0);
+					$add_extension			= strtolower($request->variable('add_extension', ''));
+					$add_extension_group	= $request->variable('add_group_select', 0);
 					$add					= (isset($_POST['add_extension_check'])) ? true : false;
 
 					if ($add_extension && $add)
 					{
-						if (!sizeof($error))
+						if (!count($error))
 						{
 							$sql = 'SELECT extension_id
 								FROM ' . EXTENSIONS_TABLE . "
@@ -413,7 +404,7 @@ class acp_attachments
 							}
 							$db->sql_freeresult($result);
 
-							if (!sizeof($error))
+							if (!count($error))
 							{
 								$sql_ary = array(
 									'group_id'	=>	$add_extension_group,
@@ -421,12 +412,13 @@ class acp_attachments
 								);
 
 								$db->sql_query('INSERT INTO ' . EXTENSIONS_TABLE . ' ' . $db->sql_build_array('INSERT', $sql_ary));
-								add_log('admin', 'LOG_ATTACH_EXT_ADD', $add_extension);
+
+								$phpbb_log->add('admin', $user->data['user_id'], $user->ip, 'LOG_ATTACH_EXT_ADD', false, array($add_extension));
 							}
 						}
 					}
 
-					if (!sizeof($error))
+					if (!count($error))
 					{
 						$notify[] = $user->lang['EXTENSIONS_UPDATED'];
 					}
@@ -478,8 +470,8 @@ class acp_attachments
 
 				if ($submit)
 				{
-					$action = request_var('action', '');
-					$group_id = request_var('g', 0);
+					$action = $request->variable('action', '');
+					$group_id = $request->variable('g', 0);
 
 					if ($action != 'add' && $action != 'edit')
 					{
@@ -510,7 +502,7 @@ class acp_attachments
 						$ext_row = array();
 					}
 
-					$group_name = utf8_normalize_nfc(request_var('group_name', '', true));
+					$group_name = $request->variable('group_name', '', true);
 					$new_group_name = ($action == 'add') ? $group_name : (($ext_row['group_name'] != $group_name) ? $group_name : '');
 
 					if (!$group_name)
@@ -537,15 +529,15 @@ class acp_attachments
 						$db->sql_freeresult($result);
 					}
 
-					if (!sizeof($error))
+					if (!count($error))
 					{
 						// Ok, build the update/insert array
-						$upload_icon	= request_var('upload_icon', 'no_image');
-						$size_select	= request_var('size_select', 'b');
-						$forum_select	= request_var('forum_select', false);
-						$allowed_forums	= request_var('allowed_forums', array(0));
+						$upload_icon	= $request->variable('upload_icon', 'no_image');
+						$size_select	= $request->variable('size_select', 'b');
+						$forum_select	= $request->variable('forum_select', false);
+						$allowed_forums	= $request->variable('allowed_forums', array(0));
 						$allow_in_pm	= (isset($_POST['allow_in_pm'])) ? true : false;
-						$max_filesize	= request_var('max_filesize', 0);
+						$max_filesize	= $request->variable('max_filesize', 0);
 						$max_filesize	= ($size_select == 'kb') ? round($max_filesize * 1024) : (($size_select == 'mb') ? round($max_filesize * 1048576) : $max_filesize);
 						$allow_group	= (isset($_POST['allow_group'])) ? true : false;
 
@@ -554,14 +546,14 @@ class acp_attachments
 							$max_filesize = 0;
 						}
 
-						if (!sizeof($allowed_forums))
+						if (!count($allowed_forums))
 						{
 							$forum_select = false;
 						}
 
 						$group_ary = array(
 							'group_name'	=> $group_name,
-							'cat_id'		=> request_var('special_category', ATTACHMENT_CATEGORY_NONE),
+							'cat_id'		=> $request->variable('special_category', ATTACHMENT_CATEGORY_NONE),
 							'allow_group'	=> ($allow_group) ? 1 : 0,
 							'upload_icon'	=> ($upload_icon == 'no_image') ? '' : $upload_icon,
 							'max_filesize'	=> $max_filesize,
@@ -585,13 +577,13 @@ class acp_attachments
 							$group_id = $db->sql_nextid();
 						}
 
-						$group_name = (isset($user->lang['EXT_GROUP_' . $group_name])) ? $user->lang['EXT_GROUP_' . $group_name] : $group_name;
-						add_log('admin', 'LOG_ATTACH_EXTGROUP_' . strtoupper($action), $group_name);
+						$group_name = $this->language->is_set('EXT_GROUP_' . utf8_strtoupper($group_name)) ? $this->language->lang('EXT_GROUP_' . utf8_strtoupper($group_name)) : $group_name;
+						$phpbb_log->add('admin', $user->data['user_id'], $user->ip, 'LOG_ATTACH_EXTGROUP_' . strtoupper($action), false, array($group_name));
 					}
 
-					$extension_list = request_var('extensions', array(0));
+					$extension_list = $request->variable('extensions', array(0));
 
-					if ($action == 'edit' && sizeof($extension_list))
+					if ($action == 'edit' && count($extension_list))
 					{
 						$sql = 'UPDATE ' . EXTENSIONS_TABLE . "
 							SET group_id = 0
@@ -599,7 +591,7 @@ class acp_attachments
 						$db->sql_query($sql);
 					}
 
-					if (sizeof($extension_list))
+					if (count($extension_list))
 					{
 						$sql = 'UPDATE ' . EXTENSIONS_TABLE . "
 							SET group_id = $group_id
@@ -609,7 +601,7 @@ class acp_attachments
 
 					$cache->destroy('_extensions');
 
-					if (!sizeof($error))
+					if (!count($error))
 					{
 						$notify[] = $user->lang['SUCCESS_EXTENSION_GROUP_' . strtoupper($action)];
 					}
@@ -618,13 +610,10 @@ class acp_attachments
 				$cat_lang = array(
 					ATTACHMENT_CATEGORY_NONE		=> $user->lang['NO_FILE_CAT'],
 					ATTACHMENT_CATEGORY_IMAGE		=> $user->lang['CAT_IMAGES'],
-					ATTACHMENT_CATEGORY_WM			=> $user->lang['CAT_WM_FILES'],
-					ATTACHMENT_CATEGORY_RM			=> $user->lang['CAT_RM_FILES'],
 					ATTACHMENT_CATEGORY_FLASH		=> $user->lang['CAT_FLASH_FILES'],
-					ATTACHMENT_CATEGORY_QUICKTIME	=> $user->lang['CAT_QUICKTIME_FILES'],
 				);
 
-				$group_id = request_var('g', 0);
+				$group_id = $request->variable('g', 0);
 				$action = (isset($_POST['add'])) ? 'add' : $action;
 
 				switch ($action)
@@ -651,7 +640,7 @@ class acp_attachments
 								WHERE group_id = $group_id";
 							$db->sql_query($sql);
 
-							add_log('admin', 'LOG_ATTACH_EXTGROUP_DEL', $group_name);
+							$phpbb_log->add('admin', $user->data['user_id'], $user->ip, 'LOG_ATTACH_EXTGROUP_DEL', false, array($group_name));
 
 							$cache->destroy('_extensions');
 
@@ -692,7 +681,7 @@ class acp_attachments
 						if ($action == 'add')
 						{
 							$ext_group_row = array(
-								'group_name'	=> utf8_normalize_nfc(request_var('group_name', '', true)),
+								'group_name'	=> $request->variable('group_name', '', true),
 								'cat_id'		=> 0,
 								'allow_group'	=> 1,
 								'allow_in_pm'	=> 1,
@@ -702,8 +691,6 @@ class acp_attachments
 
 							$forum_ids = array();
 						}
-
-						$extensions = array();
 
 						$sql = 'SELECT *
 							FROM ' . EXTENSIONS_TABLE . "
@@ -790,7 +777,7 @@ class acp_attachments
 							'S_FILENAME_LIST'			=> $filename_list,
 							'S_EDIT_GROUP'				=> true,
 							'S_NO_IMAGE'				=> $no_image_select,
-							'S_FORUM_IDS'				=> (sizeof($forum_ids)) ? true : false,
+							'S_FORUM_IDS'				=> (count($forum_ids)) ? true : false,
 
 							'U_EXTENSIONS'		=> append_sid("{$phpbb_admin_path}index.$phpEx", "i=$id&amp;mode=extensions"),
 							'U_BACK'			=> $this->u_action,
@@ -892,7 +879,7 @@ class acp_attachments
 						'U_EDIT'		=> $this->u_action . "&amp;action=edit&amp;g={$row['group_id']}",
 						'U_DELETE'		=> $this->u_action . "&amp;action=delete&amp;g={$row['group_id']}",
 
-						'GROUP_NAME'	=> (isset($user->lang['EXT_GROUP_' . $row['group_name']])) ? $user->lang['EXT_GROUP_' . $row['group_name']] : $row['group_name'],
+						'GROUP_NAME'	=> $this->language->is_set('EXT_GROUP_' . utf8_strtoupper($row['group_name'])) ? $this->language->lang('EXT_GROUP_' . utf8_strtoupper($row['group_name'])) : $row['group_name'],
 						'CATEGORY'		=> $cat_lang[$row['cat_id']],
 						)
 					);
@@ -906,13 +893,16 @@ class acp_attachments
 
 			case 'orphan':
 
+				/* @var $pagination \phpbb\pagination */
+				$pagination = $this->phpbb_container->get('pagination');
+
 				if ($submit)
 				{
-					$delete_files = (isset($_POST['delete'])) ? array_keys(request_var('delete', array('' => 0))) : array();
-					$add_files = (isset($_POST['add'])) ? array_keys(request_var('add', array('' => 0))) : array();
-					$post_ids = request_var('post_id', array('' => 0));
+					$delete_files = (isset($_POST['delete'])) ? array_keys($request->variable('delete', array('' => 0))) : array();
+					$add_files = (isset($_POST['add'])) ? array_keys($request->variable('add', array('' => 0))) : array();
+					$post_ids = $request->variable('post_id', array('' => 0));
 
-					if (sizeof($delete_files))
+					if (count($delete_files))
 					{
 						$sql = 'SELECT *
 							FROM ' . ATTACHMENTS_TABLE . '
@@ -923,11 +913,11 @@ class acp_attachments
 						$delete_files = array();
 						while ($row = $db->sql_fetchrow($result))
 						{
-							phpbb_unlink($row['physical_filename'], 'file');
+							$this->attachment_manager->unlink($row['physical_filename'], 'file');
 
 							if ($row['thumbnail'])
 							{
-								phpbb_unlink($row['physical_filename'], 'thumbnail');
+								$this->attachment_manager->unlink($row['physical_filename'], 'thumbnail');
 							}
 
 							$delete_files[$row['attach_id']] = $row['real_filename'];
@@ -935,13 +925,13 @@ class acp_attachments
 						$db->sql_freeresult($result);
 					}
 
-					if (sizeof($delete_files))
+					if (count($delete_files))
 					{
 						$sql = 'DELETE FROM ' . ATTACHMENTS_TABLE . '
 							WHERE ' . $db->sql_in_set('attach_id', array_keys($delete_files));
 						$db->sql_query($sql);
 
-						add_log('admin', 'LOG_ATTACH_ORPHAN_DEL', implode(', ', $delete_files));
+						$phpbb_log->add('admin', $user->data['user_id'], $user->ip, 'LOG_ATTACH_ORPHAN_DEL', false, array(implode(', ', $delete_files)));
 						$notify[] = sprintf($user->lang['LOG_ATTACH_ORPHAN_DEL'], implode($user->lang['COMMA_SEPARATOR'], $delete_files));
 					}
 
@@ -955,7 +945,7 @@ class acp_attachments
 					}
 					unset($add_files);
 
-					if (sizeof($upload_list))
+					if (count($upload_list))
 					{
 						$template->assign_var('S_UPLOADING_FILES', true);
 
@@ -1032,14 +1022,14 @@ class acp_attachments
 							$space_taken += $row['filesize'];
 							$files_added++;
 
-							add_log('admin', 'LOG_ATTACH_FILEUPLOAD', $post_row['post_id'], $row['real_filename']);
+							$phpbb_log->add('admin', $user->data['user_id'], $user->ip, 'LOG_ATTACH_FILEUPLOAD', false, array($post_row['post_id'], $row['real_filename']));
 						}
 						$db->sql_freeresult($result);
 
 						if ($files_added)
 						{
-							set_config_count('upload_dir_size', $space_taken, true);
-							set_config_count('num_files', $files_added, true);
+							$config->increment('upload_dir_size', $space_taken, false);
+							$config->increment('num_files', $files_added, false);
 						}
 					}
 				}
@@ -1048,13 +1038,29 @@ class acp_attachments
 					'S_ORPHAN'		=> true)
 				);
 
+				$attachments_per_page = (int) $config['topics_per_page'];
+
+				// Get total number or orphans older than 3 hours
+				$sql = 'SELECT COUNT(attach_id) as num_files, SUM(filesize) as total_size
+					FROM ' . ATTACHMENTS_TABLE . '
+					WHERE is_orphan = 1
+						AND filetime < ' . (time() - 3*60*60);
+				$result = $this->db->sql_query($sql);
+				$row = $this->db->sql_fetchrow($result);
+				$num_files = (int) $row['num_files'];
+				$total_size = (int) $row['total_size'];
+				$this->db->sql_freeresult($result);
+
+				$start = $request->variable('start', 0);
+				$start = $pagination->validate_start($start, $attachments_per_page, $num_files);
+
 				// Just get the files with is_orphan set and older than 3 hours
 				$sql = 'SELECT *
 					FROM ' . ATTACHMENTS_TABLE . '
 					WHERE is_orphan = 1
 						AND filetime < ' . (time() - 3*60*60) . '
 					ORDER BY filetime DESC';
-				$result = $db->sql_query($sql);
+				$result = $db->sql_query_limit($sql, $attachments_per_page, $start);
 
 				while ($row = $db->sql_fetchrow($result))
 				{
@@ -1070,15 +1076,29 @@ class acp_attachments
 				}
 				$db->sql_freeresult($result);
 
+				$pagination->generate_template_pagination(
+					$this->u_action,
+					'pagination',
+					'start',
+					$num_files,
+					$attachments_per_page,
+					$start
+				);
+
+				$template->assign_vars(array(
+					'TOTAL_FILES'		=> $num_files,
+					'TOTAL_SIZE'		=> get_formatted_filesize($total_size),
+				));
+
 			break;
 
 			case 'manage':
 
 				if ($submit)
 				{
-					$delete_files = (isset($_POST['delete'])) ? array_keys(request_var('delete', array('' => 0))) : array();
+					$delete_files = (isset($_POST['delete'])) ? array_keys($request->variable('delete', array('' => 0))) : array();
 
-					if (sizeof($delete_files))
+					if (count($delete_files))
 					{
 						// Select those attachments we want to delete...
 						$sql = 'SELECT real_filename
@@ -1092,13 +1112,14 @@ class acp_attachments
 						}
 						$db->sql_freeresult($result);
 
-						if ($num_deleted = delete_attachments('attach', $delete_files))
+						if ($num_deleted = $this->attachment_manager->delete('attach', $delete_files))
 						{
-							if (sizeof($delete_files) != $num_deleted)
+							if (count($delete_files) != $num_deleted)
 							{
 								$error[] = $user->lang['FILES_GONE'];
 							}
-							add_log('admin', 'LOG_ATTACHMENTS_DELETED', implode(', ', $deleted_filenames));
+
+							$phpbb_log->add('admin', $user->data['user_id'], $user->ip, 'LOG_ATTACHMENTS_DELETED', false, array(implode(', ', $deleted_filenames)));
 							$notify[] = sprintf($user->lang['LOG_ATTACHMENTS_DELETED'], implode($user->lang['COMMA_SEPARATOR'], $deleted_filenames));
 						}
 						else
@@ -1124,12 +1145,12 @@ class acp_attachments
 					'S_MANAGE'		=> true,
 				));
 
-				$start		= request_var('start', 0);
+				$start		= $request->variable('start', 0);
 
 				// Sort keys
-				$sort_days	= request_var('st', 0);
-				$sort_key	= request_var('sk', 't');
-				$sort_dir	= request_var('sd', 'd');
+				$sort_days	= $request->variable('st', 0);
+				$sort_key	= $request->variable('sk', 't');
+				$sort_dir	= $request->variable('sd', 'd');
 
 				// Sorting
 				$limit_days = array(0 => $user->lang['ALL_ENTRIES'], 1 => $user->lang['1_DAY'], 7 => $user->lang['7_DAYS'], 14 => $user->lang['2_WEEKS'], 30 => $user->lang['1_MONTH'], 90 => $user->lang['3_MONTHS'], 180 => $user->lang['6_MONTHS'], 365 => $user->lang['1_YEAR']);
@@ -1150,6 +1171,7 @@ class acp_attachments
 				$total_size = $stats['upload_dir_size'];
 
 				// Make sure $start is set to the last page if it exceeds the amount
+				/* @var $pagination \phpbb\pagination */
 				$pagination = $phpbb_container->get('pagination');
 				$start = $pagination->validate_start($start, $attachments_per_page, $num_files);
 
@@ -1213,28 +1235,24 @@ class acp_attachments
 				// Grab extensions
 				$extensions = $cache->obtain_attach_extensions(true);
 
-				for ($i = 0, $end = sizeof($attachments_list); $i < $end; ++$i)
+				for ($i = 0, $end = count($attachments_list); $i < $end; ++$i)
 				{
 					$row = $attachments_list[$i];
 
 					$row['extension'] = strtolower(trim((string) $row['extension']));
 					$comment = ($row['attach_comment'] && !$row['in_message']) ? str_replace(array("\n", "\r"), array('<br />', "\n"), $row['attach_comment']) : '';
-					$display_cat = $extensions[$row['extension']]['display_cat'];
+					$display_cat = isset($extensions[$row['extension']]['display_cat']) ? $extensions[$row['extension']]['display_cat'] : ATTACHMENT_CATEGORY_NONE;
 					$l_downloaded_viewed = ($display_cat == ATTACHMENT_CATEGORY_NONE) ? 'DOWNLOAD_COUNTS' : 'VIEWED_COUNTS';
 
 					$template->assign_block_vars('attachments', array(
 						'ATTACHMENT_POSTER'	=> get_username_string('full', (int) $row['poster_id'], (string) $row['username'], (string) $row['user_colour'], (string) $row['username']),
 						'FILESIZE'			=> get_formatted_filesize((int) $row['filesize']),
 						'FILETIME'			=> $user->format_date((int) $row['filetime']),
-						'REAL_FILENAME'		=> (!$row['in_message']) ? utf8_basename((string) $row['real_filename']) : '',
-						'PHYSICAL_FILENAME'	=> utf8_basename((string) $row['physical_filename']),
-						'EXT_GROUP_NAME'	=> (!empty($extensions[$row['extension']]['group_name'])) ? $user->lang['EXT_GROUP_' . $extensions[$row['extension']]['group_name']] : '',
+						'REAL_FILENAME'		=> utf8_basename((string) $row['real_filename']),
+						'EXT_GROUP_NAME'	=> $this->language->is_set('EXT_GROUP_' . utf8_strtoupper($extensions[$row['extension']]['group_name'])) ?  $this->language->lang('EXT_GROUP_' . utf8_strtoupper($extensions[$row['extension']]['group_name'])) : $extensions[$row['extension']]['group_name'],
 						'COMMENT'			=> $comment,
 						'TOPIC_TITLE'		=> (!$row['in_message']) ? (string) $row['topic_title'] : '',
 						'ATTACH_ID'			=> (int) $row['attach_id'],
-						'POST_ID'			=> (int) $row['post_msg_id'],
-						'TOPIC_ID'			=> (int) $row['topic_id'],
-						'POST_IDS'			=> (!empty($post_ids[$row['attach_id']])) ? (int) $post_ids[$row['attach_id']] : '',
 
 						'L_DOWNLOAD_COUNT'	=> $user->lang($l_downloaded_viewed, (int) $row['download_count']),
 
@@ -1248,7 +1266,7 @@ class acp_attachments
 			break;
 		}
 
-		if (sizeof($error))
+		if (count($error))
 		{
 			$template->assign_vars(array(
 				'S_WARNING'		=> true,
@@ -1256,7 +1274,7 @@ class acp_attachments
 			);
 		}
 
-		if (sizeof($notify))
+		if (count($notify))
 		{
 			$template->assign_vars(array(
 				'S_NOTIFY'		=> true,
@@ -1349,6 +1367,8 @@ class acp_attachments
 		else
 		{
 			$this->set_attachment_stats($this->get_attachment_stats());
+
+			/* @var $log \phpbb\log\log_interface */
 			$log = $this->phpbb_container->get('log');
 			$log->add('admin', $this->user->data['user_id'], $this->user->ip, 'LOG_RESYNC_FILES_STATS');
 		}
@@ -1365,10 +1385,7 @@ class acp_attachments
 		$types = array(
 			ATTACHMENT_CATEGORY_NONE		=> $user->lang['NO_FILE_CAT'],
 			ATTACHMENT_CATEGORY_IMAGE		=> $user->lang['CAT_IMAGES'],
-			ATTACHMENT_CATEGORY_WM			=> $user->lang['CAT_WM_FILES'],
-			ATTACHMENT_CATEGORY_RM			=> $user->lang['CAT_RM_FILES'],
 			ATTACHMENT_CATEGORY_FLASH		=> $user->lang['CAT_FLASH_FILES'],
-			ATTACHMENT_CATEGORY_QUICKTIME	=> $user->lang['CAT_QUICKTIME_FILES'],
 		);
 
 		if ($group_id)
@@ -1417,7 +1434,7 @@ class acp_attachments
 		$group_name = array();
 		while ($row = $db->sql_fetchrow($result))
 		{
-			$row['group_name'] = (isset($user->lang['EXT_GROUP_' . $row['group_name']])) ? $user->lang['EXT_GROUP_' . $row['group_name']] : $row['group_name'];
+			$row['group_name'] = $this->language->is_set('EXT_GROUP_' . utf8_strtoupper($row['group_name'])) ? $this->language->lang('EXT_GROUP_' . utf8_strtoupper($row['group_name'])) : $row['group_name'];
 			$group_name[] = $row;
 		}
 		$db->sql_freeresult($result);
@@ -1426,7 +1443,7 @@ class acp_attachments
 		$row['group_name'] = $user->lang['NOT_ASSIGNED'];
 		$group_name[] = $row;
 
-		for ($i = 0, $groups_size = sizeof($group_name); $i < $groups_size; $i++)
+		for ($i = 0, $groups_size = count($group_name); $i < $groups_size; $i++)
 		{
 			if ($default_group === false)
 			{
@@ -1446,47 +1463,6 @@ class acp_attachments
 	}
 
 	/**
-	* Search Imagick
-	*/
-	function search_imagemagick()
-	{
-		$imagick = '';
-
-		$exe = ((defined('PHP_OS')) && (preg_match('#^win#i', PHP_OS))) ? '.exe' : '';
-
-		$magic_home = getenv('MAGICK_HOME');
-
-		if (empty($magic_home))
-		{
-			$locations = array('C:/WINDOWS/', 'C:/WINNT/', 'C:/WINDOWS/SYSTEM/', 'C:/WINNT/SYSTEM/', 'C:/WINDOWS/SYSTEM32/', 'C:/WINNT/SYSTEM32/', '/usr/bin/', '/usr/sbin/', '/usr/local/bin/', '/usr/local/sbin/', '/opt/', '/usr/imagemagick/', '/usr/bin/imagemagick/');
-			$path_locations = str_replace('\\', '/', (explode(($exe) ? ';' : ':', getenv('PATH'))));
-
-			$locations = array_merge($path_locations, $locations);
-
-			foreach ($locations as $location)
-			{
-				// The path might not end properly, fudge it
-				if (substr($location, -1) !== '/')
-				{
-					$location .= '/';
-				}
-
-				if (@file_exists($location) && @is_readable($location . 'mogrify' . $exe) && @filesize($location . 'mogrify' . $exe) > 3000)
-				{
-					$imagick = str_replace('\\', '/', $location);
-					continue;
-				}
-			}
-		}
-		else
-		{
-			$imagick = str_replace('\\', '/', $magic_home);
-		}
-
-		return $imagick;
-	}
-
-	/**
 	* Test Settings
 	*/
 	function test_upload(&$error, $upload_dir, $create_directory = false)
@@ -1499,7 +1475,15 @@ class acp_attachments
 			if (!file_exists($phpbb_root_path . $upload_dir))
 			{
 				@mkdir($phpbb_root_path . $upload_dir, 0777);
-				phpbb_chmod($phpbb_root_path . $upload_dir, CHMOD_READ | CHMOD_WRITE);
+
+				try
+				{
+					$this->filesystem->phpbb_chmod($phpbb_root_path . $upload_dir, CHMOD_READ | CHMOD_WRITE);
+				}
+				catch (\phpbb\filesystem\exception\filesystem_exception $e)
+				{
+					// Do nothing
+				}
 			}
 		}
 
@@ -1515,7 +1499,7 @@ class acp_attachments
 			return;
 		}
 
-		if (!phpbb_is_writable($phpbb_root_path . $upload_dir))
+		if (!$this->filesystem->is_writable($phpbb_root_path . $upload_dir))
 		{
 			$error[] = sprintf($user->lang['NO_WRITE_UPLOAD'], $upload_dir);
 			return;
@@ -1527,13 +1511,12 @@ class acp_attachments
 	*/
 	function perform_site_list()
 	{
-		global $db, $user;
-		global $request;
+		global $db, $user, $request, $phpbb_log;
 
 		if (isset($_REQUEST['securesubmit']))
 		{
 			// Grab the list of entries
-			$ips = request_var('ips', '');
+			$ips = $request->variable('ips', '');
 			$ip_list = array_unique(explode("\n", $ips));
 			$ip_list_log = implode(', ', $ip_list);
 
@@ -1558,7 +1541,6 @@ class acp_attachments
 						if ($ip_2_counter == 0 && $ip_2_end == 254)
 						{
 							$ip_2_counter = 256;
-							$ip_2_fragment = 256;
 
 							$iplist[] = "'$ip_1_counter.*'";
 						}
@@ -1571,7 +1553,6 @@ class acp_attachments
 							if ($ip_3_counter == 0 && $ip_3_end == 254)
 							{
 								$ip_3_counter = 256;
-								$ip_3_fragment = 256;
 
 								$iplist[] = "'$ip_1_counter.$ip_2_counter.*'";
 							}
@@ -1584,7 +1565,6 @@ class acp_attachments
 								if ($ip_4_counter == 0 && $ip_4_end == 254)
 								{
 									$ip_4_counter = 256;
-									$ip_4_fragment = 256;
 
 									$iplist[] = "'$ip_1_counter.$ip_2_counter.$ip_3_counter.*'";
 								}
@@ -1655,7 +1635,7 @@ class acp_attachments
 			}
 			$db->sql_freeresult($result);
 
-			if (sizeof($iplist))
+			if (count($iplist))
 			{
 				foreach ($iplist as $ip_entry)
 				{
@@ -1665,7 +1645,7 @@ class acp_attachments
 				}
 			}
 
-			if (sizeof($hostlist))
+			if (count($hostlist))
 			{
 				foreach ($hostlist as $host_entry)
 				{
@@ -1679,16 +1659,16 @@ class acp_attachments
 			{
 				// Update log
 				$log_entry = ($ip_exclude) ? 'LOG_DOWNLOAD_EXCLUDE_IP' : 'LOG_DOWNLOAD_IP';
-				add_log('admin', $log_entry, $ip_list_log);
+				$phpbb_log->add('admin', $user->data['user_id'], $user->ip, $log_entry, false, array($ip_list_log));
 			}
 
 			trigger_error($user->lang['SECURE_DOWNLOAD_UPDATE_SUCCESS'] . adm_back_link($this->u_action));
 		}
 		else if (isset($_POST['unsecuresubmit']))
 		{
-			$unip_sql = request_var('unip', array(0));
+			$unip_sql = $request->variable('unip', array(0));
 
-			if (sizeof($unip_sql))
+			if (count($unip_sql))
 			{
 				$l_unip_list = '';
 
@@ -1708,7 +1688,7 @@ class acp_attachments
 					WHERE ' . $db->sql_in_set('site_id', $unip_sql);
 				$db->sql_query($sql);
 
-				add_log('admin', 'LOG_DOWNLOAD_REMOVE_IP', $l_unip_list);
+				$phpbb_log->add('admin', $user->data['user_id'], $user->ip, 'LOG_DOWNLOAD_REMOVE_IP', false, array($l_unip_list));
 			}
 
 			trigger_error($user->lang['SECURE_DOWNLOAD_UPDATE_SUCCESS'] . adm_back_link($this->u_action));
