@@ -6135,3 +6135,5 @@ th {
 
 .affix {
   position: fixed; }
+
+tt { font-family: monospace; }
