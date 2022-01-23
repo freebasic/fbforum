@@ -1,0 +1,32 @@
+{
+    "name": "arty/scss",
+    "type": "phpbb-extension",
+    "description": "SCSS compiler",
+    "homepage": "http://www.artodia.com",
+    "version": "1.0.1",
+    "time": "2016-04-22",
+    "keywords": ["phpbb","extension","scss"],
+    "license": "GPL-2.0",
+    "authors": [
+        {
+            "name": "Arty",
+            "homepage": "http://www.artodia.com",
+            "email": "cyberalien@gmail.com",
+            "role": "Developer"
+        }
+    ],
+    "require": {
+        "php": ">=5.3.6"
+    },
+    "extra": {
+        "display-name": "SCSS Compiler",
+        "soft-require": {
+            "phpbb/phpbb": "3.1.*"
+        },
+        "version-check": {
+            "host":      "cdn.rawgit.com",
+            "directory": "/cyberalien/sass_compiler/master/arty/scss",
+            "filename":  "versions.json"
+        }
+    }
+}
