@@ -275,6 +275,10 @@
                 "hashing",
                 "password"
             ],
+            "support": {
+                "issues": "https://github.com/ircmaxell/password_compat/issues",
+                "source": "https://github.com/ircmaxell/password_compat/tree/v1.0"
+            },
             "time": "2014-11-20T16:49:30+00:00"
         },
         {
@@ -1125,16 +1129,16 @@
         },
         {
             "name": "symfony/http-foundation",
-            "version": "v2.8.50",
+            "version": "v2.8.52",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/http-foundation.git",
-                "reference": "746f8d3638bf46ee8b202e62f2b214c3d61fb06a"
+                "reference": "3929d9fe8148d17819ad0178c748b8d339420709"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/http-foundation/zipball/746f8d3638bf46ee8b202e62f2b214c3d61fb06a",
-                "reference": "746f8d3638bf46ee8b202e62f2b214c3d61fb06a",
+                "url": "https://api.github.com/repos/symfony/http-foundation/zipball/3929d9fe8148d17819ad0178c748b8d339420709",
+                "reference": "3929d9fe8148d17819ad0178c748b8d339420709",
                 "shasum": ""
             },
             "require": {
@@ -1176,7 +1180,10 @@
             ],
             "description": "Symfony HttpFoundation Component",
             "homepage": "https://symfony.com",
-            "time": "2019-04-16T10:00:53+00:00"
+            "support": {
+                "source": "https://github.com/symfony/http-foundation/tree/2.8"
+            },
+            "time": "2019-11-12T12:34:41+00:00"
         },
         {
             "name": "symfony/http-kernel",
@@ -1322,16 +1329,16 @@
         },
         {
             "name": "symfony/polyfill-mbstring",
-            "version": "v1.11.0",
+            "version": "v1.19.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/polyfill-mbstring.git",
-                "reference": "fe5e94c604826c35a32fa832f35bd036b6799609"
+                "reference": "b5f7b932ee6fa802fc792eabd77c4c88084517ce"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/polyfill-mbstring/zipball/fe5e94c604826c35a32fa832f35bd036b6799609",
-                "reference": "fe5e94c604826c35a32fa832f35bd036b6799609",
+                "url": "https://api.github.com/repos/symfony/polyfill-mbstring/zipball/b5f7b932ee6fa802fc792eabd77c4c88084517ce",
+                "reference": "b5f7b932ee6fa802fc792eabd77c4c88084517ce",
                 "shasum": ""
             },
             "require": {
@@ -1343,7 +1350,11 @@
             "type": "library",
             "extra": {
                 "branch-alias": {
-                    "dev-master": "1.11-dev"
+                    "dev-main": "1.19-dev"
+                },
+                "thanks": {
+                    "name": "symfony/polyfill",
+                    "url": "https://github.com/symfony/polyfill"
                 }
             },
             "autoload": {
@@ -1377,20 +1388,37 @@
                 "portable",
                 "shim"
             ],
-            "time": "2019-02-06T07:57:58+00:00"
+            "support": {
+                "source": "https://github.com/symfony/polyfill-mbstring/tree/v1.19.0"
+            },
+            "funding": [
+                {
+                    "url": "https://symfony.com/sponsor",
+                    "type": "custom"
+                },
+                {
+                    "url": "https://github.com/fabpot",
+                    "type": "github"
+                },
+                {
+                    "url": "https://tidelift.com/funding/github/packagist/symfony/symfony",
+                    "type": "tidelift"
+                }
+            ],
+            "time": "2020-10-23T09:01:57+00:00"
         },
         {
             "name": "symfony/polyfill-php54",
-            "version": "v1.11.0",
+            "version": "v1.19.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/polyfill-php54.git",
-                "reference": "2964b17ddc32dba7bcba009d5501c84d3fba1452"
+                "reference": "c248bab30dad46a5f3917e7d92907e148bdc50c6"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/polyfill-php54/zipball/2964b17ddc32dba7bcba009d5501c84d3fba1452",
-                "reference": "2964b17ddc32dba7bcba009d5501c84d3fba1452",
+                "url": "https://api.github.com/repos/symfony/polyfill-php54/zipball/c248bab30dad46a5f3917e7d92907e148bdc50c6",
+                "reference": "c248bab30dad46a5f3917e7d92907e148bdc50c6",
                 "shasum": ""
             },
             "require": {
@@ -1399,7 +1427,11 @@
             "type": "library",
             "extra": {
                 "branch-alias": {
-                    "dev-master": "1.11-dev"
+                    "dev-main": "1.19-dev"
+                },
+                "thanks": {
+                    "name": "symfony/polyfill",
+                    "url": "https://github.com/symfony/polyfill"
                 }
             },
             "autoload": {
@@ -1435,20 +1467,37 @@
                 "portable",
                 "shim"
             ],
-            "time": "2019-02-06T07:57:58+00:00"
+            "support": {
+                "source": "https://github.com/symfony/polyfill-php54/tree/v1.19.0"
+            },
+            "funding": [
+                {
+                    "url": "https://symfony.com/sponsor",
+                    "type": "custom"
+                },
+                {
+                    "url": "https://github.com/fabpot",
+                    "type": "github"
+                },
+                {
+                    "url": "https://tidelift.com/funding/github/packagist/symfony/symfony",
+                    "type": "tidelift"
+                }
+            ],
+            "time": "2020-10-23T09:01:57+00:00"
         },
         {
             "name": "symfony/polyfill-php55",
-            "version": "v1.11.0",
+            "version": "v1.19.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/polyfill-php55.git",
-                "reference": "96fa25cef405ea452919559a0025d5dc16e30e4c"
+                "reference": "248a5c9877b126493abb661e4fb47792e418035b"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/polyfill-php55/zipball/96fa25cef405ea452919559a0025d5dc16e30e4c",
-                "reference": "96fa25cef405ea452919559a0025d5dc16e30e4c",
+                "url": "https://api.github.com/repos/symfony/polyfill-php55/zipball/248a5c9877b126493abb661e4fb47792e418035b",
+                "reference": "248a5c9877b126493abb661e4fb47792e418035b",
                 "shasum": ""
             },
             "require": {
@@ -1458,7 +1507,11 @@
             "type": "library",
             "extra": {
                 "branch-alias": {
-                    "dev-master": "1.11-dev"
+                    "dev-main": "1.19-dev"
+                },
+                "thanks": {
+                    "name": "symfony/polyfill",
+                    "url": "https://github.com/symfony/polyfill"
                 }
             },
             "autoload": {
@@ -1491,7 +1544,24 @@
                 "portable",
                 "shim"
             ],
-            "time": "2019-02-06T07:57:58+00:00"
+            "support": {
+                "source": "https://github.com/symfony/polyfill-php55/tree/v1.19.0"
+            },
+            "funding": [
+                {
+                    "url": "https://symfony.com/sponsor",
+                    "type": "custom"
+                },
+                {
+                    "url": "https://github.com/fabpot",
+                    "type": "github"
+                },
+                {
+                    "url": "https://tidelift.com/funding/github/packagist/symfony/symfony",
+                    "type": "tidelift"
+                }
+            ],
+            "time": "2020-10-23T09:01:57+00:00"
         },
         {
             "name": "symfony/proxy-manager-bridge",
@@ -3643,5 +3713,6 @@
     "platform-dev": [],
     "platform-overrides": {
         "php": "5.4.7"
-    }
+    },
+    "plugin-api-version": "2.2.0"
 }
