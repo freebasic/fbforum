@@ -4,7 +4,7 @@
 $dbms = 'mysqli';
 $dbhost = 'localhost';
 $dbport = '';
-$dbname = 'fb_phpb314';
+$dbname = 'fb_phpb328';
 $dbuser = 'xxx';
 $dbpasswd = 'xxx';
 $table_prefix = 'phpbb_';
