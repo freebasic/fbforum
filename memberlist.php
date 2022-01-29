@@ -958,7 +958,7 @@ switch ($mode)
 		$sort_key_text = array('a' => $user->lang['SORT_USERNAME'], 'c' => $user->lang['SORT_JOINED'], 'd' => $user->lang['SORT_POST_COUNT']);
 		$sort_key_sql = array('a' => 'u.username_clean', 'c' => 'u.user_regdate', 'd' => 'u.user_posts');
 
-		if ($config['jab_enable'])
+		if ($config['jab_enable'] && $auth->acl_get('u_sendim'))
 		{
 			$sort_key_text['k'] = $user->lang['JABBER'];
 			$sort_key_sql['k'] = 'u.user_jabber';
@@ -1675,7 +1675,7 @@ switch ($mode)
 			}
 
 			// do we need to display contact fields as such
-			$use_contact_fields = false;
+			$use_contact_fields = true;
 
 			/**
 			 * Modify list of users before member row is created

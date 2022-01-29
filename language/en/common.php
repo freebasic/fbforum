@@ -167,6 +167,7 @@ $lang = array_merge($lang, array(
 	),
 	'COLLAPSE_VIEW'			=> 'Collapse view',
 	'CLOSE_WINDOW'			=> 'Close window',
+	'CODE'					=> 'Code',
 	'COLOUR_SWATCH'			=> 'Colour swatch',
 	'COLON'					=> ':',
 	'COMMA_SEPARATOR'		=> ', ',	// Comma used to join lists into a single string, use localised comma if appropriate, eg: Ideographic or Arabic
@@ -204,6 +205,7 @@ $lang = array_merge($lang, array(
 	'DISPLAY_MESSAGES'		=> 'Display messages from previous',
 	'DISPLAY_POSTS'			=> 'Display posts from previous',
 	'DISPLAY_TOPICS'		=> 'Display topics from previous',
+	'DOMAIN_NO_MX_RECORD_EMAIL'	=> 'The entered email domain has no valid MX record.',
 	'DOWNLOADED'			=> 'Downloaded',
 	'DOWNLOADING_FILE'		=> 'Downloading file',
 	'DOWNLOAD_COUNTS'		=> array(
@@ -519,7 +521,7 @@ $lang = array_merge($lang, array(
 	'NO_POSTS_TIME_FRAME'		=> 'No posts exist inside this topic for the selected time frame.',
 	'NO_FEED_ENABLED'			=> 'Feeds are not available on this board.',
 	'NO_FEED'					=> 'The requested feed is not available.',
-	'NO_STYLE_DATA'				=> 'Could not get style data',
+	'NO_STYLE_DATA'				=> 'Could not get style data for user_style %s and set for user_id %s',
 	'NO_STYLE_CFG'				=> 'Could not get the style configuration file for: %s',
 	'NO_SUBJECT'				=> 'No subject specified',								// Used for posts having no subject defined but displayed within management pages.
 	'NO_SUCH_SEARCH_MODULE'		=> 'The specified search backend doesn’t exist.',
@@ -605,6 +607,9 @@ $lang = array_merge($lang, array(
 	'POST_UNAPPROVED_ACTION'	=> 'Post awaiting approval:',
 	'POST_UNAPPROVED'		=> 'This post has not been approved.',
 	'POWERED_BY'			=> 'Powered by %s',
+
+	'QUOTE'					=> 'Quote',
+
 	'PREVIEW'				=> 'Preview',
 	'PREVIOUS'				=> 'Previous',		// Used in pagination
 	'PREVIOUS_STEP'			=> 'Previous',

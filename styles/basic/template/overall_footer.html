@@ -19,14 +19,15 @@
 			<span class="footer-copyright">{{ CREDIT_LINE }}</span>
 		</p>
 		<p class="footer-row">
-			<span class="footer-copyright">Style {L_POST_BY_AUTHOR} <a href="http://www.artodia.com/">Arty</a> - {L_UPDATE} phpBB 3.2 {L_POST_BY_AUTHOR} MrGaby</span>
-		</p>		<!-- IF TRANSLATION_INFO -->
+			<span class="footer-copyright">Style {{ lang('POST_BY_AUTHOR') }} <a href="http://www.artodia.com/">Arty</a> - phpBB 3.2 {{ lang('POST_BY_AUTHOR') }} MrGaby</span>
+		</p>
+		<!-- IF TRANSLATION_INFO -->
 		<p class="footer-row">
 			<span class="footer-copyright">{{ TRANSLATION_INFO }}</span>
 		</p>
 		<!-- ENDIF -->
 		<!-- EVENT overall_footer_copyright_append -->
-		<p class="footer-row">
+		<p class="footer-row" role="menu">
 			<a class="footer-link" href="{{ U_PRIVACY }}" title="{{ lang('PRIVACY_LINK') }}" role="menuitem">
 				<span class="footer-link-text">{{ lang('PRIVACY_LINK') }}</span>
 			</a>

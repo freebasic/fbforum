@@ -2519,7 +2519,7 @@ blockquote {
 	pointer-events: none;
 }*/
 blockquote blockquote {
-  margin: 5px; }
+  margin: 1em 1px 1em 15px; }
 
 blockquote cite {
   font-style: normal;
@@ -4874,38 +4874,38 @@ dl.faq dt, .content dl.faq dt {
   border-top-color: #e7e7e7; }
 
 blockquote {
-  background-color: #f0f0f0;
-  border-color: #dedede; }
+  background-color: #EBEADD;
+  border-color: #dedcc7; }
 
 blockquote blockquote,
 blockquote .codebox,
 blockquote .attachbox {
-  background-color: #e8e8e8; }
+  background-color: #EFEED9; }
 
 blockquote blockquote blockquote,
 blockquote blockquote .codebox,
 blockquote blockquote .attachbox {
-  background-color: #ececec; }
+  background-color: #edecdb; }
 
 /*blockquote:before {
 	color: $muted-color;
 }*/
 .codebox {
   background-color: #FFFFFF;
-  border-color: #dedede; }
+  border-color: #dedcc7; }
 
 .codebox p {
-  border-bottom-color: #e3e3e3; }
+  border-bottom-color: #e2e0cd; }
 
 .codebox code {
   color: #3aa648; }
 
 .attachbox {
-  background-color: #f0f0f0;
-  border-color: #dedede; }
+  background-color: #EBEADD;
+  border-color: #dedcc7; }
 
 .attachbox dd {
-  border-top-color: #e3e3e3; }
+  border-top-color: #e2e0cd; }
 
 .attachbox p {
   color: #666; }
@@ -4917,7 +4917,7 @@ dl.file dd {
   color: #666; }
 
 dl.thumbnail img {
-  border-color: #e3e3e3;
+  border-color: #e2e0cd;
   background-color: #f4f4f4; }
 
 dl.thumbnail dd {

@@ -222,7 +222,7 @@ if ($mark_read == 'topics')
 		$data = array(
 			'NO_UNREAD_POSTS'	=> $user->lang['NO_UNREAD_POSTS'],
 			'UNREAD_POSTS'		=> $user->lang['UNREAD_POSTS'],
-			'U_MARK_TOPICS'		=> ($user->data['is_registered'] || $config['load_anon_lastread']) ? append_sid("{$phpbb_root_path}viewforum.$phpEx", 'hash=' . generate_link_hash('global') . "&f=$forum_id&mark=topics&mark_time=" . time()) : '',
+			'U_MARK_TOPICS'		=> ($user->data['is_registered'] || $config['load_anon_lastread']) ? append_sid("{$phpbb_root_path}viewforum.$phpEx", 'hash=' . generate_link_hash('global') . "&f=$forum_id&mark=topics&mark_time=" . time(), false) : '',
 			'MESSAGE_TITLE'		=> $user->lang['INFORMATION'],
 			'MESSAGE_TEXT'		=> $user->lang['TOPICS_MARKED']
 		);
@@ -710,9 +710,28 @@ if (count($topic_list))
 		'SELECT'		=> $sql_array['SELECT'],
 		'FROM'			=> $sql_array['FROM'],
 		'LEFT_JOIN'		=> $sql_array['LEFT_JOIN'],
-
 		'WHERE'			=> $db->sql_in_set('t.topic_id', $topic_list),
 	);
+
+	/**
+	* Event to modify the SQL query before obtaining topics/stickies
+	*
+	* @event core.viewforum_modify_topic_list_sql
+	* @var	int		forum_id			The forum ID
+	* @var	array	forum_data			Data about the forum
+	* @var	array	topic_list			Topic ids array
+	* @var	array	sql_array			SQL query array for obtaining topics/stickies
+	*
+	* @since 3.2.10-RC1
+	* @since 3.3.1-RC1
+	*/
+	$vars = [
+		'forum_id',
+		'forum_data',
+		'topic_list',
+		'sql_array',
+	];
+	extract($phpbb_dispatcher->trigger_event('core.viewforum_modify_topic_list_sql', compact($vars)));
 
 	// If store_reverse, then first obtain topics, then stickies, else the other way around...
 	// Funnily enough you typically save one query if going from the last page to the middle (store_reverse) because
@@ -933,9 +952,12 @@ if (count($topic_list))
 			'TOPIC_AUTHOR_COLOUR'		=> get_username_string('colour', $row['topic_poster'], $row['topic_first_poster_name'], $row['topic_first_poster_colour']),
 			'TOPIC_AUTHOR_FULL'			=> get_username_string('full', $row['topic_poster'], $row['topic_first_poster_name'], $row['topic_first_poster_colour']),
 			'FIRST_POST_TIME'			=> $user->format_date($row['topic_time']),
+			'FIRST_POST_TIME_RFC3339'	=> gmdate(DATE_RFC3339, $row['topic_time']),
 			'LAST_POST_SUBJECT'			=> censor_text($row['topic_last_post_subject']),
 			'LAST_POST_TIME'			=> $user->format_date($row['topic_last_post_time']),
+			'LAST_POST_TIME_RFC3339'	=> gmdate(DATE_RFC3339, $row['topic_last_post_time']),
 			'LAST_VIEW_TIME'			=> $user->format_date($row['topic_last_view_time']),
+			'LAST_VIEW_TIME_RFC3339'	=> gmdate(DATE_RFC3339, $row['topic_last_view_time']),
 			'LAST_POST_AUTHOR'			=> get_username_string('username', $row['topic_last_poster_id'], $row['topic_last_poster_name'], $row['topic_last_poster_colour']),
 			'LAST_POST_AUTHOR_COLOUR'	=> get_username_string('colour', $row['topic_last_poster_id'], $row['topic_last_poster_name'], $row['topic_last_poster_colour']),
 			'LAST_POST_AUTHOR_FULL'		=> get_username_string('full', $row['topic_last_poster_id'], $row['topic_last_poster_name'], $row['topic_last_poster_colour']),

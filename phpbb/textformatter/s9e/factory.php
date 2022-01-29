@@ -89,6 +89,8 @@ class factory implements \phpbb\textformatter\cache_interface
 				author={TEXT1;optional}
 				post_id={UINT;optional}
 				post_url={URL;optional;postFilter=#false}
+				msg_id={UINT;optional}
+				msg_url={URL;optional;postFilter=#false}
 				profile_url={URL;optional;postFilter=#false}
 				time={UINT;optional}
 				url={URL;optional}
@@ -216,7 +218,7 @@ class factory implements \phpbb\textformatter\cache_interface
 		{
 			$configurator->urlConfig->disallowScheme($scheme);
 		}
-		foreach (explode(',', $this->config['allowed_schemes_links']) as $scheme)
+		foreach (array_filter(explode(',', $this->config['allowed_schemes_links'])) as $scheme)
 		{
 			$configurator->urlConfig->allowScheme(trim($scheme));
 		}
@@ -271,8 +273,6 @@ class factory implements \phpbb\textformatter\cache_interface
 			->add('#imageurl', __NAMESPACE__ . '\\parser::filter_img_url')
 			->addParameterByName('urlConfig')
 			->addParameterByName('logger')
-			->addParameterByName('max_img_height')
-			->addParameterByName('max_img_width')
 			->markAsSafeAsURL()
 			->setJS('UrlFilter.filter');
 

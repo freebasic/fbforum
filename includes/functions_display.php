@@ -70,7 +70,7 @@ function display_forums($root_data = '', $display_moderators = true, $return_mod
 				$data = array(
 					'NO_UNREAD_POSTS'	=> $user->lang['NO_UNREAD_POSTS'],
 					'UNREAD_POSTS'		=> $user->lang['UNREAD_POSTS'],
-					'U_MARK_FORUMS'		=> ($user->data['is_registered'] || $config['load_anon_lastread']) ? append_sid("{$phpbb_root_path}index.$phpEx", 'hash=' . generate_link_hash('global') . '&mark=forums&mark_time=' . time()) : '',
+					'U_MARK_FORUMS'		=> ($user->data['is_registered'] || $config['load_anon_lastread']) ? append_sid("{$phpbb_root_path}index.$phpEx", 'hash=' . generate_link_hash('global') . '&mark=forums&mark_time=' . time(), false) : '',
 					'MESSAGE_TITLE'		=> $user->lang['INFORMATION'],
 					'MESSAGE_TEXT'		=> $user->lang['FORUMS_MARKED']
 				);
@@ -355,7 +355,7 @@ function display_forums($root_data = '', $display_moderators = true, $return_mod
 				$data = array(
 					'NO_UNREAD_POSTS'	=> $user->lang['NO_UNREAD_POSTS'],
 					'UNREAD_POSTS'		=> $user->lang['UNREAD_POSTS'],
-					'U_MARK_FORUMS'		=> ($user->data['is_registered'] || $config['load_anon_lastread']) ? append_sid("{$phpbb_root_path}viewforum.$phpEx", 'hash=' . generate_link_hash('global') . '&f=' . $root_data['forum_id'] . '&mark=forums&mark_time=' . time()) : '',
+					'U_MARK_FORUMS'		=> ($user->data['is_registered'] || $config['load_anon_lastread']) ? append_sid("{$phpbb_root_path}viewforum.$phpEx", 'hash=' . generate_link_hash('global') . '&f=' . $root_data['forum_id'] . '&mark=forums&mark_time=' . time(), false) : '',
 					'MESSAGE_TITLE'		=> $user->lang['INFORMATION'],
 					'MESSAGE_TEXT'		=> $user->lang['FORUMS_MARKED']
 				);
@@ -539,7 +539,8 @@ function display_forums($root_data = '', $display_moderators = true, $return_mod
 		{
 			if ($row['forum_password_last_post'] === '' && $auth->acl_gets('f_read', 'f_list_topics', $row['forum_id_last_post']))
 			{
-				$last_post_subject = censor_text($row['forum_last_post_subject']);
+				$last_post_subject = utf8_decode_ncr(censor_text($row['forum_last_post_subject']));
+
 				$last_post_subject_truncated = truncate_string($last_post_subject, 30, 255, false, $user->lang['ELLIPSIS']);
 			}
 			else
@@ -547,11 +548,12 @@ function display_forums($root_data = '', $display_moderators = true, $return_mod
 				$last_post_subject = $last_post_subject_truncated = '';
 			}
 			$last_post_time = $user->format_date($row['forum_last_post_time']);
+			$last_post_time_rfc3339 = gmdate(DATE_RFC3339, $row['forum_last_post_time']);
 			$last_post_url = append_sid("{$phpbb_root_path}viewtopic.$phpEx", 'f=' . $row['forum_id_last_post'] . '&amp;p=' . $row['forum_last_post_id']) . '#p' . $row['forum_last_post_id'];
 		}
 		else
 		{
-			$last_post_subject = $last_post_time = $last_post_url = $last_post_subject_truncated = '';
+			$last_post_subject = $last_post_time = $last_post_time_rfc3339 = $last_post_url = $last_post_subject_truncated = '';
 		}
 
 		// Output moderator listing ... if applicable
@@ -622,6 +624,7 @@ function display_forums($root_data = '', $display_moderators = true, $return_mod
 			'LAST_POST_SUBJECT'		=> $last_post_subject,
 			'LAST_POST_SUBJECT_TRUNCATED'	=> $last_post_subject_truncated,
 			'LAST_POST_TIME'		=> $last_post_time,
+			'LAST_POST_TIME_RFC3339'=> $last_post_time_rfc3339,
 			'LAST_POSTER'			=> get_username_string('username', $row['forum_last_poster_id'], $row['forum_last_poster_name'], $row['forum_last_poster_colour']),
 			'LAST_POSTER_COLOUR'	=> get_username_string('colour', $row['forum_last_poster_id'], $row['forum_last_poster_name'], $row['forum_last_poster_colour']),
 			'LAST_POSTER_FULL'		=> get_username_string('full', $row['forum_last_poster_id'], $row['forum_last_poster_name'], $row['forum_last_poster_colour']),
@@ -1111,13 +1114,15 @@ function display_custom_bbcodes()
 			$row['bbcode_helpline'] = $user->lang[strtoupper($row['bbcode_helpline'])];
 		}
 
+		// Convert Numeric Character References to UTF-8 chars.
+		$row['bbcode_helpline'] = utf8_decode_ncr($row['bbcode_helpline']);
+
 		$custom_tags = array(
 			'BBCODE_NAME'		=> "'[{$row['bbcode_tag']}]', '[/" . str_replace('=', '', $row['bbcode_tag']) . "]'",
 			'BBCODE_ID'			=> $num_predefined_bbcodes + ($i * 2),
 			'BBCODE_TAG'		=> $row['bbcode_tag'],
 			'BBCODE_TAG_CLEAN'	=> str_replace('=', '-', $row['bbcode_tag']),
 			'BBCODE_HELPLINE'	=> $row['bbcode_helpline'],
-			'A_BBCODE_HELPLINE'	=> str_replace(array('&amp;', '&quot;', "'", '&lt;', '&gt;'), array('&', '"', "\'", '<', '>'), $row['bbcode_helpline']),
 		);
 
 		/**
@@ -1690,8 +1695,8 @@ function phpbb_show_profile($data, $user_notes_enabled = false, $warn_user_enabl
 		'U_EMAIL'		=> $email,
 		'U_JABBER'		=> ($data['user_jabber'] && $auth->acl_get('u_sendim')) ? append_sid("{$phpbb_root_path}memberlist.$phpEx", 'mode=contact&amp;action=jabber&amp;u=' . $user_id) : '',
 
-		'USER_JABBER'		=> ($config['jab_enable']) ? $data['user_jabber'] : '',
-		'USER_JABBER_IMG'	=> ($config['jab_enable'] && $data['user_jabber']) ? $user->img('icon_contact_jabber', $data['user_jabber']) : '',
+		'USER_JABBER'		=> ($config['jab_enable'] && $auth->acl_get('u_sendim')) ? $data['user_jabber'] : '',
+		'USER_JABBER_IMG'	=> ($config['jab_enable'] && $auth->acl_get('u_sendim') && $data['user_jabber']) ? $user->img('icon_contact_jabber', $data['user_jabber']) : '',
 
 		'L_SEND_EMAIL_USER' => $user->lang('SEND_EMAIL_USER', $username),
 		'L_CONTACT_USER'	=> $user->lang('CONTACT_USER', $username),
