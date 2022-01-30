@@ -39,11 +39,22 @@ class ucp_register
 			trigger_error('UCP_REGISTER_DISABLE');
 		}
 
-		$coppa			= $request->is_set('coppa') ? (int) $request->variable('coppa', false) : false;
+		$coppa			= $request->is_set('coppa_yes') ? 1 : ($request->is_set('coppa_no') ? 0 : false);
+		$coppa			= $request->is_set('coppa') ? $request->variable('coppa', 0) : $coppa;
 		$agreed			= $request->variable('agreed', false);
 		$submit			= $request->is_set_post('submit');
 		$change_lang	= $request->variable('change_lang', '');
 		$user_lang		= $request->variable('lang', $user->lang_name);
+
+		if ($agreed && !check_form_key('ucp_register'))
+		{
+			$agreed = false;
+		}
+
+		if ($coppa !== false && !check_form_key('ucp_register'))
+		{
+			$coppa = false;
+		}
 
 		/**
 		* Add UCP register data before they are assigned to the template or submitted
@@ -67,14 +78,7 @@ class ucp_register
 		);
 		extract($phpbb_dispatcher->trigger_event('core.ucp_register_requests_after', compact($vars)));
 
-		if ($agreed)
-		{
-			add_form_key('ucp_register');
-		}
-		else
-		{
-			add_form_key('ucp_register_terms');
-		}
+		add_form_key('ucp_register');
 
 		if ($change_lang || $user_lang != $config['default_lang'])
 		{
@@ -168,11 +172,8 @@ class ucp_register
 
 				$template_vars = array(
 					'S_LANG_OPTIONS'	=> (count($lang_row) > 1) ? language_select($user_lang) : '',
-					'L_COPPA_NO'		=> sprintf($user->lang['UCP_COPPA_BEFORE'], $coppa_birthday),
-					'L_COPPA_YES'		=> sprintf($user->lang['UCP_COPPA_ON_AFTER'], $coppa_birthday),
-
-					'U_COPPA_NO'		=> append_sid("{$phpbb_root_path}ucp.$phpEx", 'mode=register&amp;coppa=0'),
-					'U_COPPA_YES'		=> append_sid("{$phpbb_root_path}ucp.$phpEx", 'mode=register&amp;coppa=1'),
+					'L_COPPA_NO'		=> $user->lang('UCP_COPPA_BEFORE', $coppa_birthday),
+					'L_COPPA_YES'		=> $user->lang('UCP_COPPA_ON_AFTER', $coppa_birthday),
 
 					'S_SHOW_COPPA'		=> true,
 					'S_HIDDEN_FIELDS'	=> build_hidden_fields($s_hidden_fields),
@@ -410,11 +411,13 @@ class ucp_register
 				* @event core.ucp_register_user_row_after
 				* @var	bool	submit		Do we display the form only
 				*							or did the user press submit
+				* @var	array	data		Array with current ucp registration data
 				* @var	array	cp_data		Array with custom profile fields data
-				* @var	array	user_row	Array with current ucp registration data
+				* @var	array	user_row	Array with user data that will be inserted
 				* @since 3.1.4-RC1
+				* @changed 3.2.10-RC1 Added data array
 				*/
-				$vars = array('submit', 'cp_data', 'user_row');
+				$vars = array('submit', 'data', 'cp_data', 'user_row');
 				extract($phpbb_dispatcher->trigger_event('core.ucp_register_user_row_after', compact($vars)));
 
 				// Register user...
