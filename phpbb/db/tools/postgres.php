@@ -24,7 +24,7 @@ class postgres extends tools
 	 *
 	 * @return array
 	 */
-	public static function get_dbms_type_map()
+	static public function get_dbms_type_map()
 	{
 		return array(
 			'postgres'	=> array(
@@ -99,6 +99,24 @@ class postgres extends tools
 	/**
 	 * {@inheritDoc}
 	 */
+	function sql_table_exists($table_name)
+	{
+		$sql = "SELECT CAST(EXISTS(
+			SELECT FROM information_schema.tables
+				WHERE table_schema = 'public'
+					AND table_name   = '" . $this->db->sql_escape($table_name) . "'
+			) AS INTEGER)";
+		$result = $this->db->sql_query_limit($sql, 1);
+		$row = $this->db->sql_fetchrow($result);
+		$table_exists = (booL) $row['exists'];
+		$this->db->sql_freeresult($result);
+
+		return $table_exists;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
 	function sql_create_table($table_name, $table_data)
 	{
 		// holds the DDL for a column
@@ -141,7 +159,7 @@ class postgres extends tools
 				$primary_key_gen = isset($prepared_column['primary_key_set']) && $prepared_column['primary_key_set'];
 			}
 
-			// create sequence DDL based off of the existance of auto incrementing columns
+			// create sequence DDL based off of the existence of auto incrementing columns
 			if (!$create_sequence && isset($prepared_column['auto_increment']) && $prepared_column['auto_increment'])
 			{
 				$create_sequence = $column_name;
@@ -559,16 +577,16 @@ class postgres extends tools
 		// we don't want to double up on constraints if we change different number data types
 		if (isset($column_data['constraint']))
 		{
-			$constraint_sql = "SELECT consrc as constraint_data
-				FROM pg_constraint, pg_class bc
+			$constraint_sql = "SELECT pg_get_constraintdef(pc.oid) AS constraint_data
+				FROM pg_constraint pc, pg_class bc
 				WHERE conrelid = bc.oid
-					AND bc.relname = '{$table_name}'
+					AND bc.relname = '" . $this->db->sql_escape($table_name) . "'
 					AND NOT EXISTS (
 						SELECT *
-						FROM pg_constraint as c, pg_inherits as i
-						WHERE i.inhrelid = pg_constraint.conrelid
-							AND c.conname = pg_constraint.conname
-							AND c.consrc = pg_constraint.consrc
+						FROM pg_constraint AS c, pg_inherits AS i
+						WHERE i.inhrelid = pc.conrelid
+							AND c.conname = pc.conname
+							AND pg_get_constraintdef(c.oid) = pg_get_constraintdef(pc.oid)
 							AND c.conrelid = i.inhparent
 					)";
 

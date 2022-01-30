@@ -96,7 +96,7 @@ class fulltext_postgres extends \phpbb\search\base
 	 * @param string $phpEx PHP file extension
 	 * @param \phpbb\auth\auth $auth Auth object
 	 * @param \phpbb\config\config $config Config object
-	 * @param \phpbb\db\driver\driver_interface Database object
+	 * @param \phpbb\db\driver\driver_interface $db Database object
 	 * @param \phpbb\user $user User object
 	 * @param \phpbb\event\dispatcher_interface	$phpbb_dispatcher	Event dispatcher object
 	 */
@@ -173,7 +173,7 @@ class fulltext_postgres extends \phpbb\search\base
 	/**
 	* Checks for correct PostgreSQL version and stores min/max word length in the config
 	*
-	* @return string|bool Language key of the error/incompatiblity occurred
+	* @return string|bool Language key of the error/incompatibility occurred
 	*/
 	public function init()
 	{
@@ -204,7 +204,7 @@ class fulltext_postgres extends \phpbb\search\base
 		}
 
 		// Filter out as above
-		$split_keywords = preg_replace("#[\"\n\r\t]+#", ' ', trim(htmlspecialchars_decode($keywords)));
+		$split_keywords = preg_replace("#[\"\n\r\t]+#", ' ', trim(htmlspecialchars_decode($keywords, ENT_COMPAT)));
 
 		// Split words
 		$split_keywords = preg_replace('#([^\p{L}\p{N}\'*"()])#u', '$1$1', str_replace('\'\'', '\' \'', trim($split_keywords)));

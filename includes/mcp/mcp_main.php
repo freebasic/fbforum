@@ -881,16 +881,38 @@ function mcp_restore_topic($topic_ids)
 */
 function mcp_delete_topic($topic_ids, $is_soft = false, $soft_delete_reason = '', $action = 'delete_topic')
 {
-	global $auth, $user, $db, $phpEx, $phpbb_root_path, $request, $phpbb_container, $phpbb_log;
+	global $auth, $user, $db, $phpEx, $phpbb_root_path, $request, $phpbb_container, $phpbb_log, $phpbb_dispatcher;
 
-	$check_permission = ($is_soft) ? 'm_softdelete' : 'm_delete';
-	if (!phpbb_check_ids($topic_ids, TOPICS_TABLE, 'topic_id', array($check_permission)))
+	$forum_id = $request->variable('f', 0);
+	$check_permission = ($is_soft) ? ['m_softdelete'] : ['m_delete'];
+	/**
+	* This event allows you to modify the current user's checked permissions when deleting a topic
+	*
+	* @event core.mcp_delete_topic_modify_permissions
+	* @var	array	topic_ids				The array of topic IDs to be deleted
+	* @var	int		forum_id				The current forum ID
+	* @var	bool	is_soft					Boolean designating whether we're soft deleting or not
+	* @var	string	soft_delete_reason		The reason we're soft deleting
+	* @var	string	action					The current delete action
+	* @var	array	check_permission		The array with a permission to check for, can be set to false to not check them
+	* @since 3.3.3-RC1
+	*/
+	$vars = array(
+		'topic_ids',
+		'forum_id',
+		'is_soft',
+		'soft_delete_reason',
+		'action',
+		'check_permission',
+	);
+	extract($phpbb_dispatcher->trigger_event('core.mcp_delete_topic_modify_permissions', compact($vars)));
+
+	if (!phpbb_check_ids($topic_ids, TOPICS_TABLE, 'topic_id', $check_permission))
 	{
 		return;
 	}
 
 	$redirect = $request->variable('redirect', build_url(array('action', 'quickmod')));
-	$forum_id = $request->variable('f', 0);
 
 	$s_hidden_fields = array(
 		'topic_id_list'	=> $topic_ids,
@@ -1001,6 +1023,28 @@ function mcp_delete_topic($topic_ids, $is_soft = false, $soft_delete_reason = ''
 		{
 			$s_hidden_fields['delete_permanent'] = '1';
 		}
+
+		/**
+		* This event allows you to modify the hidden form fields when deleting topics
+		*
+		* @event core.mcp_delete_topic_modify_hidden_fields
+		* @var	string	l_confirm				The confirmation text language variable (DELETE_TOPIC(S), DELETE_TOPIC(S)_PERMANENTLY)
+		* @var	array	s_hidden_fields			The array holding the hidden form fields
+		* @var	array	topic_ids				The array of topic IDs to be deleted
+		* @var	int		forum_id				The current forum ID
+		* @var	bool	only_softdeleted		If the topic_ids are all soft deleted, this is true
+		* @var	bool	only_shadow				If the topic_ids are all shadow topics, this is true
+		* @since 3.3.3-RC1
+		*/
+		$vars = array(
+			'l_confirm',
+			's_hidden_fields',
+			'topic_ids',
+			'forum_id',
+			'only_softdeleted',
+			'only_shadow',
+		);
+		extract($phpbb_dispatcher->trigger_event('core.mcp_delete_topic_modify_hidden_fields', compact($vars)));
 
 		confirm_box(false, $l_confirm, build_hidden_fields($s_hidden_fields), 'confirm_delete_body.html');
 	}
@@ -1127,7 +1171,7 @@ function mcp_delete_post($post_ids, $is_soft = false, $soft_delete_reason = '', 
 		$return_link = array();
 		if ($affected_topics == 1 && $topic_id)
 		{
-			$return_link[] = sprintf($user->lang['RETURN_TOPIC'], '<a href="' . append_sid("{$phpbb_root_path}viewtopic.$phpEx", "f=$forum_id&amp;t=$topic_id") . '">', '</a>');
+			$return_link[] = sprintf($user->lang['RETURN_TOPIC'], '<a href="' . append_sid("{$phpbb_root_path}viewtopic.$phpEx", "t=$topic_id") . '">', '</a>');
 		}
 		$return_link[] = sprintf($user->lang['RETURN_FORUM'], '<a href="' . append_sid("{$phpbb_root_path}viewforum.$phpEx", 'f=' . $forum_id) . '">', '</a>');
 
@@ -1186,7 +1230,7 @@ function mcp_delete_post($post_ids, $is_soft = false, $soft_delete_reason = '', 
 		$return_link = array();
 		if ($affected_topics == 1 && !$deleted_topics && $topic_id)
 		{
-			$return_link[] = sprintf($user->lang['RETURN_TOPIC'], '<a href="' . append_sid("{$phpbb_root_path}viewtopic.$phpEx", "f=$forum_id&amp;t=$topic_id") . '">', '</a>');
+			$return_link[] = sprintf($user->lang['RETURN_TOPIC'], '<a href="' . append_sid("{$phpbb_root_path}viewtopic.$phpEx", "t=$topic_id") . '">', '</a>');
 		}
 		$return_link[] = sprintf($user->lang['RETURN_FORUM'], '<a href="' . append_sid("{$phpbb_root_path}viewforum.$phpEx", 'f=' . $forum_id) . '">', '</a>');
 
@@ -1519,6 +1563,26 @@ function mcp_fork_topic($topic_ids)
 						$counter[$row['poster_id']] = 1;
 					}
 				}
+
+				/**
+				* Modify the forked post's sql array before it's inserted into the database.
+				*
+				* @event core.mcp_main_modify_fork_post_sql
+				* @var	int		new_topic_id	The newly created topic ID
+				* @var	int		to_forum_id		The forum ID where the forked topic has been moved to
+				* @var	array	sql_ary			SQL Array with the post's data
+				* @var	array	row				Post data
+				* @var	array	counter			Array with post counts
+				* @since 3.3.5-RC1
+				*/
+				$vars = [
+					'new_topic_id',
+					'to_forum_id',
+					'sql_ary',
+					'row',
+					'counter',
+				];
+				extract($phpbb_dispatcher->trigger_event('core.mcp_main_modify_fork_post_sql', compact($vars)));
 				$db->sql_query('INSERT INTO ' . POSTS_TABLE . ' ' . $db->sql_build_array('INSERT', $sql_ary));
 				$new_post_id = $db->sql_nextid();
 

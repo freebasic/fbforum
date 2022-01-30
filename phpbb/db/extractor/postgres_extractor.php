@@ -208,16 +208,16 @@ class postgres_extractor extends base_extractor
 		}
 
 		// Generate constraint clauses for CHECK constraints
-		$sql_checks = "SELECT conname as index_name, consrc
-			FROM pg_constraint, pg_class bc
-			WHERE conrelid = bc.oid
+		$sql_checks = "SELECT pc.conname AS index_name, pg_get_expr(pc.conbin, pc.conrelid) AS constraint_expr
+			FROM pg_constraint pc, pg_class bc
+			WHERE pc.conrelid = bc.oid
 				AND bc.relname = '" . $this->db->sql_escape($table_name) . "'
 				AND NOT EXISTS (
 					SELECT *
-						FROM pg_constraint as c, pg_inherits as i
-						WHERE i.inhrelid = pg_constraint.conrelid
-							AND c.conname = pg_constraint.conname
-							AND c.consrc = pg_constraint.consrc
+					FROM pg_constraint AS c, pg_inherits AS i
+						WHERE i.inhrelid = pc.conrelid
+							AND c.conname = pc.conname
+							AND pg_get_constraintdef(c.oid) = pg_get_constraintdef(pc.oid)
 							AND c.conrelid = i.inhparent
 				)";
 		$result = $this->db->sql_query($sql_checks);
@@ -225,9 +225,9 @@ class postgres_extractor extends base_extractor
 		// Add the constraints to the sql file.
 		while ($row = $this->db->sql_fetchrow($result))
 		{
-			if (!is_null($row['consrc']))
+			if (!empty($row['constraint_expr']))
 			{
-				$lines[] = '  CONSTRAINT ' . $row['index_name'] . ' CHECK ' . $row['consrc'];
+				$lines[] = '  CONSTRAINT ' . $row['index_name'] . ' CHECK ' . $row['constraint_expr'];
 			}
 		}
 		$this->db->sql_freeresult($result);
@@ -324,7 +324,7 @@ class postgres_extractor extends base_extractor
 	* Writes closing line(s) to database backup
 	*
 	* @return null
-	* @throws \phpbb\db\extractor\exception\extractor_not_initialized_exception when calling this function before init_extractor()
+	* @throws extractor_not_initialized_exception when calling this function before init_extractor()
 	*/
 	public function write_end()
 	{

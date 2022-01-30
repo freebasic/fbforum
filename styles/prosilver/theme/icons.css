@@ -5,16 +5,16 @@
 /* Global module setup
 --------------------------------*/
 
-/* Renamed version of .fa class for agnostic useage of icon fonts.
+/* Renamed version of .fa class for agnostic usage of icon fonts.
  * Just change the name of the font after the 14/1 to the name of
  * the font you wish to use.
  */
 .icon, .button .icon, blockquote cite:before, .uncited:before {
 	display: inline-block;
+  	font-family: FontAwesome;
   	font-weight: normal;
   	font-style: normal;
   	font-variant: normal;
-  	font-family: FontAwesome;
   	font-size: 14px;
   	line-height: 1;
   	text-rendering: auto; /* optimizelegibility throws things off #1094 */
@@ -73,17 +73,17 @@
 }
 
 .post-buttons .dropdown-contents .icon {
-    float: right;
-    margin-left: 5px;
+	float: right;
+	margin-left: 5px;
 }
 
 .alert_close .icon:before {
 	padding: 0;
-    border-radius: 50%;
-    width: 11px;
-    display: block;
-    line-height: .9;
-    height: 12px;
+	border-radius: 50%;
+	width: 11px;
+	display: block;
+	line-height: .9;
+	height: 12px;
 }
 
 blockquote cite:before, .uncited:before {

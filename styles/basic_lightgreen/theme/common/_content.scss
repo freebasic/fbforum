@@ -640,6 +640,19 @@ $panel-line-height:		$line-height !default;
 	font-size: $post-content-font-size;
 	margin-bottom: 1em;
 	line-height: $post-content-line-height;
+
+}
+
+.agreement {
+	font-size: 12px;
+	line-height: 17px;
+	margin-bottom: 10px;
+}
+
+.agreement-text {
+	line-height: 17px;
+	margin-bottom: 10px;
+
 }
 
 dl.faq {
@@ -817,7 +830,7 @@ blockquote cite:before, .uncited:before {
 	padding-right: 5px;
 }
 
-blockquote cite > div {
+blockquote cite > span {
 	float: right;
 	font-weight: normal;
 }
@@ -899,6 +912,7 @@ blockquote .codebox {
 	clear: left;
 	border-top: 1px solid transparent;
 	overflow-x: auto;
+	overflow-y: hidden;
 }
 
 .attachbox dd dd {

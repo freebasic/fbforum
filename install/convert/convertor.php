@@ -63,7 +63,7 @@ class convertor
 	{
 		global $user, $phpbb_root_path, $phpEx, $db, $lang, $config, $cache, $auth;
 		global $convert, $convert_row, $message_parser, $skip_rows, $language;
-		global $request, $phpbb_dispatcher;
+		global $request, $phpbb_dispatcher, $phpbb_container;
 
 		$phpbb_config_php_file = new \phpbb\config_php_file($phpbb_root_path, $phpEx);
 		extract($phpbb_config_php_file->get_all());
@@ -132,7 +132,7 @@ class convertor
 			$dbms = $convert->src_dbms;
 			/** @var \phpbb\db\driver\driver $src_db */
 			$src_db = new $dbms();
-			$src_db->sql_connect($convert->src_dbhost, $convert->src_dbuser, htmlspecialchars_decode($convert->src_dbpasswd), $convert->src_dbname, $convert->src_dbport, false, true);
+			$src_db->sql_connect($convert->src_dbhost, $convert->src_dbuser, htmlspecialchars_decode($convert->src_dbpasswd, ENT_COMPAT), $convert->src_dbname, $convert->src_dbport, false, true);
 			$same_db = false;
 		}
 		else
@@ -146,16 +146,6 @@ class convertor
 		{
 			case 'sqlite3':
 				$convert->src_truncate_statement = 'DELETE FROM ';
-				break;
-
-			// Thanks MySQL, for silently converting...
-			case 'mysql':
-			case 'mysql4':
-				if (version_compare($src_db->sql_server_info(true, false), '4.1.3', '>='))
-				{
-					$convert->mysql_convert = true;
-				}
-				$convert->src_truncate_statement = 'TRUNCATE TABLE ';
 				break;
 
 			case 'mysqli':
@@ -687,7 +677,7 @@ class convertor
 
 				$this->template->assign_block_vars('checks', array(
 					'TITLE'		=> "skip_rows = $skip_rows",
-					'RESULT'	=> $rows . ((defined('DEBUG') && function_exists('memory_get_usage')) ? ceil(memory_get_usage()/1024) . ' ' . $user->lang['KIB'] : ''),
+					'RESULT'	=> $rows . (($phpbb_container->getParameter('debug.memory') && function_exists('memory_get_usage')) ? ceil(memory_get_usage()/1024) . ' ' . $user->lang['KIB'] : ''),
 				));
 
 				$mtime = explode(' ', microtime());
@@ -748,8 +738,6 @@ class convertor
 						switch ($db->get_sql_layer())
 						{
 							// If MySQL, we'll wait to have num_wait_rows rows to submit at once
-							case 'mysql':
-							case 'mysql4':
 							case 'mysqli':
 								$waiting_rows[] = '(' . implode(', ', $insert_values) . ')';
 
@@ -775,7 +763,7 @@ class convertor
 										{
 											if (!$db->sql_query($insert_query . $waiting_sql))
 											{
-												$this->db_error($user->lang['DB_ERR_INSERT'], htmlspecialchars($insert_query . $waiting_sql) . '<br /><br />' . htmlspecialchars(print_r($db->_sql_error(), true)), __LINE__, __FILE__, true);
+												$this->db_error($user->lang['DB_ERR_INSERT'], htmlspecialchars($insert_query . $waiting_sql, ENT_COMPAT) . '<br /><br />' . htmlspecialchars(print_r($db->_sql_error(), true), ENT_COMPAT), __LINE__, __FILE__, true);
 											}
 										}
 
@@ -794,7 +782,7 @@ class convertor
 
 								if (!$db->sql_query($insert_sql))
 								{
-									$this->db_error($user->lang['DB_ERR_INSERT'], htmlspecialchars($insert_sql) . '<br /><br />' . htmlspecialchars(print_r($db->_sql_error(), true)), __LINE__, __FILE__, true);
+									$this->db_error($user->lang['DB_ERR_INSERT'], htmlspecialchars($insert_sql, ENT_COMPAT) . '<br /><br />' . htmlspecialchars(print_r($db->_sql_error(), true), ENT_COMPAT), __LINE__, __FILE__, true);
 								}
 								$db->sql_return_on_error(false);
 
@@ -829,7 +817,7 @@ class convertor
 						foreach ($waiting_rows as $waiting_sql)
 						{
 							$db->sql_query($insert_query . $waiting_sql);
-							$this->db_error($user->lang['DB_ERR_INSERT'], htmlspecialchars($insert_query . $waiting_sql) . '<br /><br />' . htmlspecialchars(print_r($db->_sql_error(), true)), __LINE__, __FILE__, true);
+							$this->db_error($user->lang['DB_ERR_INSERT'], htmlspecialchars($insert_query . $waiting_sql, ENT_COMPAT) . '<br /><br />' . htmlspecialchars(print_r($db->_sql_error(), true), ENT_COMPAT), __LINE__, __FILE__, true);
 						}
 
 						$db->sql_return_on_error(false);
@@ -920,6 +908,7 @@ class convertor
 	{
 		global $user, $db, $phpbb_root_path, $phpEx, $config, $cache;
 		global $convert;
+		global $phpbb_container;
 
 		include_once ($phpbb_root_path . 'includes/functions_admin.' . $phpEx);
 
@@ -959,7 +948,7 @@ class convertor
 			sync('topic', 'range', 'topic_id BETWEEN ' . $sync_batch . ' AND ' . $end, true, true);
 
 			$this->template->assign_block_vars('checks', array(
-				'TITLE'		=> sprintf($user->lang['SYNC_TOPIC_ID'], $sync_batch, ($sync_batch + $batch_size)) . ((defined('DEBUG') && function_exists('memory_get_usage')) ? ' [' . ceil(memory_get_usage()/1024) . ' ' . $user->lang['KIB'] . ']' : ''),
+				'TITLE'		=> sprintf($user->lang['SYNC_TOPIC_ID'], $sync_batch, ($sync_batch + $batch_size)) . (($phpbb_container->getParameter('debug.memory') && function_exists('memory_get_usage')) ? ' [' . ceil(memory_get_usage()/1024) . ' ' . $user->lang['KIB'] . ']' : ''),
 				'RESULT'	=> $user->lang['DONE'],
 			));
 
@@ -1257,9 +1246,7 @@ class convertor
 		global $db, $user;
 		global $convert;
 
-		// Can we use IGNORE with this DBMS?
-		$sql_ignore = (strpos($db->get_sql_layer(), 'mysql') === 0 && !defined('DEBUG')) ? 'IGNORE ' : '';
-		$insert_query = 'INSERT ' . $sql_ignore . 'INTO ' . $schema['target'] . ' (';
+		$insert_query = 'INSERT INTO ' . $schema['target'] . ' (';
 
 		$aliases = array();
 
@@ -1313,7 +1300,7 @@ class convertor
 						else
 						{
 							// No table alias
-							$sql_data['source_tables'][$m[1]] = (empty($convert->src_table_prefix)) ? $m[1] : $convert->src_table_prefix . $m[1] . ' ' . $m[1];
+							$sql_data['source_tables'][$m[1]] = (empty($convert->src_table_prefix)) ? $m[1] : $convert->src_table_prefix . $m[1] . ' ' . $db->sql_quote($m[1]);
 						}
 
 						$sql_data['select_fields'][$value_1] = $value_1;
@@ -1327,7 +1314,7 @@ class convertor
 				{
 					foreach ($m[1] as $value)
 					{
-						$sql_data['source_tables'][$value] = (empty($convert->src_table_prefix)) ? $value : $convert->src_table_prefix . $value . ' ' . $value;
+						$sql_data['source_tables'][$value] = (empty($convert->src_table_prefix)) ? $value : $convert->src_table_prefix . $value . ' ' . $db->sql_quote($value);
 					}
 				}
 			}
@@ -1336,7 +1323,7 @@ class convertor
 		// Add the aliases to the list of tables
 		foreach ($aliases as $alias => $table)
 		{
-			$sql_data['source_tables'][$alias] = $convert->src_table_prefix . $table . ' ' . $alias;
+			$sql_data['source_tables'][$alias] = $convert->src_table_prefix . $table . ' ' . $db->sql_quote($alias);
 		}
 
 		// 'left_join'		=> 'forums LEFT JOIN forum_prune ON forums.forum_id = forum_prune.forum_id',
@@ -1481,6 +1468,12 @@ class convertor
 									$value = array($value);
 								}
 
+								// Add ENT_COMPAT default flag to html specialchars/entities functions, see PHPBB3-16690
+								if (in_array($execution, ['htmlspecialchars', 'htmlentities', 'htmlspecialchars_decode', 'html_entitity_decode']))
+								{
+									$value[] = ENT_COMPAT;
+								}
+
 								$value = call_user_func_array($execution, $value);
 							}
 							else if (strpos($type, 'execute') === 0)
@@ -1528,6 +1521,12 @@ class convertor
 								if (!is_array($value))
 								{
 									$value = array($value);
+								}
+
+								// Add ENT_COMPAT default flag to html specialchars/entities functions, see PHPBB3-16690
+								if (in_array($execution, ['htmlspecialchars', 'htmlentities', 'htmlspecialchars_decode', 'html_entitity_decode']))
+								{
+									$value[] = ENT_COMPAT;
 								}
 
 								$value = call_user_func_array($execution, $value);

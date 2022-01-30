@@ -339,7 +339,7 @@
                 ""
             ],
             "bbcode_helpline": [
-                "VCHAR_UNI",
+                "TEXT_UNI",
                 ""
             ],
             "display_on_posting": [
@@ -795,6 +795,10 @@
             "display_subforum_list": [
                 "BOOL",
                 1
+            ],
+            "display_subforum_limit": [
+                "BOOL",
+                0
             ],
             "forum_options": [
                 "UINT:20",
@@ -1378,6 +1382,32 @@
                 ]
             ]
         }
+    },
+    "phpbb_notification_emails": {
+        "COLUMNS": {
+            "notification_type_id": [
+                "USINT",
+                0
+            ],
+            "item_id": [
+                "ULINT",
+                0
+            ],
+            "item_parent_id": [
+                "ULINT",
+                0
+            ],
+            "user_id": [
+                "ULINT",
+                0
+            ]
+        },
+        "PRIMARY_KEY": [
+            "notification_type_id",
+            "item_id",
+            "item_parent_id",
+            "user_id"
+        ]
     },
     "phpbb_notification_types": {
         "COLUMNS": {
@@ -2164,19 +2194,11 @@
                 "VCHAR",
                 ""
             ],
-            "pf_phpbb_googleplus": [
-                "VCHAR",
-                ""
-            ],
             "pf_phpbb_website": [
                 "VCHAR",
                 ""
             ],
             "pf_phpbb_yahoo": [
-                "VCHAR",
-                ""
-            ],
-            "pf_phpbb_aol": [
                 "VCHAR",
                 ""
             ]
@@ -3129,10 +3151,6 @@
                 "VCHAR_UNI:100",
                 ""
             ],
-            "user_email_hash": [
-                "BINT",
-                0
-            ],
             "user_birthday": [
                 "VCHAR:10",
                 ""
@@ -3325,6 +3343,14 @@
                 "VCHAR:32",
                 ""
             ],
+            "reset_token": [
+                "VCHAR:64",
+                ""
+            ],
+            "reset_token_expiration": [
+                "TIMESTAMP",
+                0
+            ],
             "user_newpasswd": [
                 "VCHAR:255",
                 ""
@@ -3352,10 +3378,6 @@
                 "INDEX",
                 "user_birthday"
             ],
-            "user_email_hash": [
-                "INDEX",
-                "user_email_hash"
-            ],
             "user_type": [
                 "INDEX",
                 "user_type"
@@ -3363,6 +3385,12 @@
             "username_clean": [
                 "UNIQUE",
                 "username_clean"
+            ],
+            "user_email": [
+                "INDEX",
+                [
+                    "user_email"
+                ]
             ]
         }
     },

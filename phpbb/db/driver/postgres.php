@@ -173,12 +173,11 @@ class postgres extends \phpbb\db\driver\driver
 		{
 			global $cache;
 
-			// EXPLAIN only in extra debug mode
-			if (defined('DEBUG'))
+			if ($this->debug_sql_explain)
 			{
 				$this->sql_report('start', $query);
 			}
-			else if (defined('PHPBB_DISPLAY_LOAD_TIME'))
+			else if ($this->debug_load_time)
 			{
 				$this->curtime = microtime(true);
 			}
@@ -194,11 +193,11 @@ class postgres extends \phpbb\db\driver\driver
 					$this->sql_error($query);
 				}
 
-				if (defined('DEBUG'))
+				if ($this->debug_sql_explain)
 				{
 					$this->sql_report('stop', $query);
 				}
-				else if (defined('PHPBB_DISPLAY_LOAD_TIME'))
+				else if ($this->debug_load_time)
 				{
 					$this->sql_time += microtime(true) - $this->curtime;
 				}
@@ -208,17 +207,19 @@ class postgres extends \phpbb\db\driver\driver
 					return false;
 				}
 
+				$safe_query_id = $this->clean_query_id($this->query_result);
+
 				if ($cache && $cache_ttl)
 				{
-					$this->open_queries[(int) $this->query_result] = $this->query_result;
+					$this->open_queries[$safe_query_id] = $this->query_result;
 					$this->query_result = $cache->sql_save($this, $query, $this->query_result, $cache_ttl);
 				}
 				else if (strpos($query, 'SELECT') === 0)
 				{
-					$this->open_queries[(int) $this->query_result] = $this->query_result;
+					$this->open_queries[$safe_query_id] = $this->query_result;
 				}
 			}
-			else if (defined('DEBUG'))
+			else if ($this->debug_sql_explain)
 			{
 				$this->sql_report('fromcache', $query);
 			}
@@ -278,9 +279,10 @@ class postgres extends \phpbb\db\driver\driver
 			$query_id = $this->query_result;
 		}
 
-		if ($cache && $cache->sql_exists($query_id))
+		$safe_query_id = $this->clean_query_id($query_id);
+		if ($cache && $cache->sql_exists($safe_query_id))
 		{
-			return $cache->sql_fetchrow($query_id);
+			return $cache->sql_fetchrow($safe_query_id);
 		}
 
 		return ($query_id) ? pg_fetch_assoc($query_id, null) : false;
@@ -298,12 +300,45 @@ class postgres extends \phpbb\db\driver\driver
 			$query_id = $this->query_result;
 		}
 
-		if ($cache && $cache->sql_exists($query_id))
+		$safe_query_id = $this->clean_query_id($query_id);
+		if ($cache && $cache->sql_exists($safe_query_id))
 		{
-			return $cache->sql_rowseek($rownum, $query_id);
+			return $cache->sql_rowseek($rownum, $safe_query_id);
 		}
 
 		return ($query_id) ? @pg_result_seek($query_id, $rownum) : false;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	function sql_fetchfield($field, $rownum = false, $query_id = false)
+	{
+		global $cache;
+
+		if ($query_id === false)
+		{
+			$query_id = $this->query_result;
+		}
+
+		if ($query_id)
+		{
+			if ($rownum !== false)
+			{
+				$this->sql_rowseek($rownum, $query_id);
+			}
+
+			$safe_query_id = $this->clean_query_id($query_id);
+			if ($cache && !is_object($query_id) && $cache->sql_exists($safe_query_id))
+			{
+				return $cache->sql_fetchfield($safe_query_id, $field);
+			}
+
+			$row = $this->sql_fetchrow($query_id);
+			return (isset($row[$field])) ? $row[$field] : false;
+		}
+
+		return false;
 	}
 
 	/**
@@ -347,14 +382,15 @@ class postgres extends \phpbb\db\driver\driver
 			$query_id = $this->query_result;
 		}
 
-		if ($cache && !is_object($query_id) && $cache->sql_exists($query_id))
+		$safe_query_id = $this->clean_query_id($query_id);
+		if ($cache && !is_object($query_id) && $cache->sql_exists($safe_query_id))
 		{
-			return $cache->sql_freeresult($query_id);
+			return $cache->sql_freeresult($safe_query_id);
 		}
 
-		if (isset($this->open_queries[(int) $query_id]))
+		if (isset($this->open_queries[$safe_query_id]))
 		{
-			unset($this->open_queries[(int) $query_id]);
+			unset($this->open_queries[$safe_query_id]);
 			return pg_free_result($query_id);
 		}
 
@@ -432,6 +468,11 @@ class postgres extends \phpbb\db\driver\driver
 	*/
 	function _sql_close()
 	{
+		// Released resources are already closed, return true in this case
+		if (!is_resource($this->db_connect_id))
+		{
+			return true;
+		}
 		return @pg_close($this->db_connect_id);
 	}
 
@@ -496,6 +537,35 @@ class postgres extends \phpbb\db\driver\driver
 				$this->sql_report('record_fromcache', $query, $endtime, $splittime);
 
 			break;
+		}
+	}
+
+	/**
+	* {@inheritDoc}
+	*/
+	function sql_quote($msg)
+	{
+		return '"' . $msg . '"';
+	}
+
+	/**
+	 * Ensure query ID can be used by cache
+	 *
+	 * @param resource|int|string $query_id Mixed type query id
+	 *
+	 * @return int|string Query id in string or integer format
+	 */
+	private function clean_query_id($query_id)
+	{
+		// As of PHP 8.1 PgSQL functions accept/return \PgSQL\* objects instead of "pgsql *" resources
+		// Attempting to cast object to int will throw error, hence correctly handle all cases
+		if (is_resource($query_id))
+		{
+			return function_exists('get_resource_id') ? get_resource_id($query_id) : (int) $query_id;
+		}
+		else
+		{
+			return is_object($query_id) ? spl_object_id($query_id) : $query_id;
 		}
 	}
 }

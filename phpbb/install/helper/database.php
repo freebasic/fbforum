@@ -45,15 +45,6 @@ class database
 			'AVAILABLE'		=> true,
 			'2.0.x'			=> true,
 		),
-		'mysql'		=> array(
-			'LABEL'			=> 'MySQL',
-			'SCHEMA'		=> 'mysql',
-			'MODULE'		=> 'mysql',
-			'DELIM'			=> ';',
-			'DRIVER'		=> 'phpbb\db\driver\mysql',
-			'AVAILABLE'		=> true,
-			'2.0.x'			=> true,
-		),
 		'mssql_odbc'=>	array(
 			'LABEL'			=> 'MS SQL Server [ ODBC ]',
 			'SCHEMA'		=> 'mssql',
@@ -239,7 +230,7 @@ class database
 	 *
 	 * @return bool|array	true if table prefix is valid, array of errors otherwise
 	 *
-	 * @throws \phpbb\install\exception\invalid_dbms_exception When $dbms is not a valid
+	 * @throws invalid_dbms_exception When $dbms is not a valid
 	 */
 	public function validate_table_prefix($dbms, $table_prefix)
 	{
@@ -256,7 +247,6 @@ class database
 		$dbms_info = $this->get_available_dbms($dbms);
 		switch ($dbms_info[$dbms]['SCHEMA'])
 		{
-			case 'mysql':
 			case 'mysql_41':
 				$prefix_length = 36;
 			break;
@@ -382,14 +372,6 @@ class database
 			// Check if database version is supported
 			switch ($dbms)
 			{
-				case 'mysqli':
-					if (version_compare($db->sql_server_info(true), '4.1.3', '<'))
-					{
-						$errors[] = array(
-							'title' => 'INST_ERR_DB_NO_MYSQLI',
-						);
-					}
-				break;
 				case 'sqlite3':
 					if (version_compare($db->sql_server_info(true), '3.6.15', '<'))
 					{

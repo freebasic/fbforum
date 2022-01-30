@@ -13,7 +13,7 @@
 
 namespace phpbb\db\driver;
 
-use \Symfony\Component\DependencyInjection\ContainerInterface;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
 * Database Abstraction Layer
@@ -63,6 +63,22 @@ class factory implements driver_interface
 	public function set_driver(driver_interface $driver)
 	{
 		$this->driver = $driver;
+	}
+
+	/**
+	* {@inheritdoc}
+	*/
+	public function set_debug_load_time($value)
+	{
+		$this->get_driver()->set_debug_load_time($value);
+	}
+
+	/**
+	* {@inheritdoc}
+	*/
+	public function set_debug_sql_explain($value)
+	{
+		$this->get_driver()->set_debug_sql_explain($value);
 	}
 
 	/**
@@ -439,5 +455,13 @@ class factory implements driver_interface
 	public function sql_in_set($field, $array, $negate = false, $allow_empty_set = false)
 	{
 		return $this->get_driver()->sql_in_set($field, $array, $negate, $allow_empty_set);
+	}
+
+	/**
+	* {@inheritdoc}
+	*/
+	public function sql_quote($msg)
+	{
+		return $this->get_driver()->sql_quote($msg);
 	}
 }

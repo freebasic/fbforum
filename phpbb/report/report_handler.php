@@ -51,11 +51,11 @@ abstract class report_handler implements report_handler_interface
 	protected $report_data;
 
 	/**
-	 * Construtor
+	 * Constructor
 	 *
 	 * @param \phpbb\db\driver\driver_interface	$db
 	 * @param \phpbb\event\dispatcher_interface	$dispatcher
-	 * @param \phpbb\config\db					$config
+	 * @param \phpbb\config\config				$config
 	 * @param \phpbb\auth\auth					$auth
 	 * @param \phpbb\user						$user
 	 * @param \phpbb\notification\manager		$notification

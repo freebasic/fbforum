@@ -36,7 +36,7 @@ class notify_user extends \phpbb\install\task_base
 	protected $auth;
 
 	/**
-	 * @var \phpbb\config\db
+	 * @var db
 	 */
 	protected $config;
 
@@ -97,6 +97,9 @@ class notify_user extends \phpbb\install\task_base
 			$container->get_parameter('tables.config')
 		);
 
+		global $config;
+		$config = $this->config;
+
 		parent::__construct(true);
 	}
 
@@ -112,18 +115,13 @@ class notify_user extends \phpbb\install\task_base
 		{
 			include ($this->phpbb_root_path . 'includes/functions_messenger.' . $this->php_ext);
 
-			// functions_messenger.php uses config to determine language paths
-			// Remove when able
-			global $config;
-			$config = $this->config;
-
 			$messenger = new \messenger(false);
 			$messenger->template('installed', $this->install_config->get('user_language', 'en'));
 			$messenger->to($this->config['board_email'], $this->install_config->get('admin_name'));
 			$messenger->anti_abuse_headers($this->config, $this->user);
 			$messenger->assign_vars(array(
-					'USERNAME'		=> htmlspecialchars_decode($this->install_config->get('admin_name')),
-					'PASSWORD'		=> htmlspecialchars_decode($this->install_config->get('admin_passwd')))
+					'USERNAME'		=> htmlspecialchars_decode($this->install_config->get('admin_name'), ENT_COMPAT),
+					'PASSWORD'		=> htmlspecialchars_decode($this->install_config->get('admin_passwd'), ENT_COMPAT))
 			);
 			$messenger->send(NOTIFY_EMAIL);
 		}

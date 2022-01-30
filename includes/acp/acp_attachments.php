@@ -631,7 +631,6 @@ class acp_attachments
 				$cat_lang = array(
 					ATTACHMENT_CATEGORY_NONE		=> $user->lang['NO_FILE_CAT'],
 					ATTACHMENT_CATEGORY_IMAGE		=> $user->lang['CAT_IMAGES'],
-					ATTACHMENT_CATEGORY_FLASH		=> $user->lang['CAT_FLASH_FILES'],
 				);
 
 				$group_id = $request->variable('g', 0);
@@ -760,7 +759,7 @@ class acp_attachments
 									continue;
 								}
 
-								$filename_list .= '<option value="' . htmlspecialchars($img) . '"' . $selected . '>' . htmlspecialchars($img) . '</option>';
+								$filename_list .= '<option value="' . htmlspecialchars($img, ENT_COMPAT) . '"' . $selected . '>' . htmlspecialchars($img, ENT_COMPAT) . '</option>';
 							}
 						}
 
@@ -1279,7 +1278,7 @@ class acp_attachments
 
 						'S_IN_MESSAGE'		=> (bool) $row['in_message'],
 
-						'U_VIEW_TOPIC'		=> append_sid("{$phpbb_root_path}viewtopic.$phpEx", "t={$row['topic_id']}&amp;p={$row['post_msg_id']}") . "#p{$row['post_msg_id']}",
+						'U_VIEW_TOPIC'		=> append_sid("{$phpbb_root_path}viewtopic.$phpEx", "p={$row['post_msg_id']}") . "#p{$row['post_msg_id']}",
 						'U_FILE'			=> append_sid($phpbb_root_path . 'download/file.' . $phpEx, 'mode=view&amp;id=' . $row['attach_id']))
 					);
 				}
@@ -1406,7 +1405,6 @@ class acp_attachments
 		$types = array(
 			ATTACHMENT_CATEGORY_NONE		=> $user->lang['NO_FILE_CAT'],
 			ATTACHMENT_CATEGORY_IMAGE		=> $user->lang['CAT_IMAGES'],
-			ATTACHMENT_CATEGORY_FLASH		=> $user->lang['CAT_FLASH_FILES'],
 		);
 
 		if ($group_id)

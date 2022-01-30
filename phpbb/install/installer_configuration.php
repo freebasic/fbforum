@@ -22,7 +22,7 @@ class installer_configuration implements ConfigurationInterface
 	/**
 	 * Generates the configuration tree builder.
 	 *
-	 * @return \Symfony\Component\Config\Definition\Builder\TreeBuilder The tree builder
+	 * @return TreeBuilder The tree builder
 	 */
 	public function getConfigTreeBuilder()
 	{
@@ -48,9 +48,9 @@ class installer_configuration implements ConfigurationInterface
 							->cannotBeEmpty()
 							->end()
 						->scalarNode('description')
-						->defaultValue('My amazing new phpBB board')
-						->cannotBeEmpty()
-						->end()
+							->defaultValue('My amazing new phpBB board')
+							->cannotBeEmpty()
+							->end()
 					->end()
 				->end()
 				->arrayNode('database')
@@ -128,12 +128,11 @@ class installer_configuration implements ConfigurationInterface
 						->integerNode('server_port')
 							->defaultValue(80)
 							->min(1)
-							->cannotBeEmpty()
 							->end()
 						->scalarNode('script_path')
 							->defaultValue('/')
 							->cannotBeEmpty()
-							 ->end()
+							->end()
 					->end()
 				->end()
 				->arrayNode('extensions')

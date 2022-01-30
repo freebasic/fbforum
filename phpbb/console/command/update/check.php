@@ -26,11 +26,12 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 
 class check extends \phpbb\console\command\command
 {
-	/** @var \phpbb\config\config */
+	/** @var config */
 	protected $config;
 
 	/** @var \Symfony\Component\DependencyInjection\ContainerBuilder */
 	protected $phpbb_container;
+
 	/**
 	 * @var language
 	 */
@@ -77,7 +78,7 @@ class check extends \phpbb\console\command\command
 	*
 	* @param InputInterface $input Input stream, used to get the options.
 	* @param OutputInterface $output Output stream, used to print messages.
-	* @return int 0 if the board is up to date, 1 if it is not and 2 if an error occured.
+	* @return int 0 if the board is up to date, 1 if it is not and 2 if an error occurred.
 	* @throws \RuntimeException
 	*/
 	protected function execute(InputInterface $input, OutputInterface $output)
@@ -223,6 +224,7 @@ class check extends \phpbb\console\command\command
 	* Check if all the available extensions are up to date
 	*
 	* @param SymfonyStyle	$io			IO handler, for formatted and unified IO
+	* @param string			$stability	Stability specifier string
 	* @param bool			$recheck	Disallow the use of the cache
 	* @return int
 	*/

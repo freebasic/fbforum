@@ -14,13 +14,13 @@
 namespace phpbb\attachment;
 
 use phpbb\auth\auth;
-use \phpbb\cache\service;
-use \phpbb\config\config;
-use \phpbb\event\dispatcher;
-use \phpbb\language\language;
-use \phpbb\mimetype\guesser;
-use \phpbb\plupload\plupload;
-use \phpbb\user;
+use phpbb\cache\service;
+use phpbb\config\config;
+use phpbb\event\dispatcher;
+use phpbb\language\language;
+use phpbb\mimetype\guesser;
+use phpbb\plupload\plupload;
+use phpbb\user;
 
 /**
  * Attachment upload class
@@ -296,8 +296,10 @@ class upload
 	 */
 	protected function check_disk_space()
 	{
-		if ($free_space = @disk_free_space($this->phpbb_root_path . $this->config['upload_path']))
+		if (function_exists('disk_free_space'))
 		{
+			$free_space = @disk_free_space($this->phpbb_root_path);
+
 			if ($free_space <= $this->file->get('filesize'))
 			{
 				if ($this->auth->acl_get('a_'))
