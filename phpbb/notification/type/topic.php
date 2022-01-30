@@ -217,12 +217,12 @@ class topic extends \phpbb\notification\type\base
 		}
 
 		return array(
-			'AUTHOR_NAME'				=> htmlspecialchars_decode($username),
-			'FORUM_NAME'				=> htmlspecialchars_decode($this->get_data('forum_name')),
-			'TOPIC_TITLE'				=> htmlspecialchars_decode(censor_text($this->get_data('topic_title'))),
+			'AUTHOR_NAME'				=> htmlspecialchars_decode($username, ENT_COMPAT),
+			'FORUM_NAME'				=> htmlspecialchars_decode($this->get_data('forum_name'), ENT_COMPAT),
+			'TOPIC_TITLE'				=> htmlspecialchars_decode(censor_text($this->get_data('topic_title')), ENT_COMPAT),
 
-			'U_TOPIC'					=> "{$board_url}/viewtopic.{$this->php_ext}?f={$this->item_parent_id}&t={$this->item_id}",
-			'U_VIEW_TOPIC'				=> "{$board_url}/viewtopic.{$this->php_ext}?f={$this->item_parent_id}&t={$this->item_id}",
+			'U_TOPIC'					=> "{$board_url}/viewtopic.{$this->php_ext}?t={$this->item_id}",
+			'U_VIEW_TOPIC'				=> "{$board_url}/viewtopic.{$this->php_ext}?t={$this->item_id}",
 			'U_FORUM'					=> "{$board_url}/viewforum.{$this->php_ext}?f={$this->item_parent_id}",
 			'U_STOP_WATCHING_FORUM'		=> "{$board_url}/viewforum.{$this->php_ext}?uid={$this->user_id}&f={$this->item_parent_id}&unwatch=forum",
 		);
@@ -235,7 +235,7 @@ class topic extends \phpbb\notification\type\base
 	*/
 	public function get_url()
 	{
-		return append_sid($this->phpbb_root_path . 'viewtopic.' . $this->php_ext, "f={$this->item_parent_id}&amp;t={$this->item_id}");
+		return append_sid($this->phpbb_root_path . 'viewtopic.' . $this->php_ext, "t={$this->item_id}");
 	}
 
 	/**
@@ -256,7 +256,7 @@ class topic extends \phpbb\notification\type\base
 	*
 	* @param array $post Post data from submit_post
 	* @param array $notify_users Notify users list
-	* 		Formated from find_users_for_notification()
+	* 		Formatted from find_users_for_notification()
 	* @return array Whatever you want to send to create_insert_array().
 	*/
 	public function pre_create_insert_array($post, $notify_users)

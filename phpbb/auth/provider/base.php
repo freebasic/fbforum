@@ -16,7 +16,7 @@ namespace phpbb\auth\provider;
 /**
 * Base authentication provider class that all other providers should implement
 */
-abstract class base implements \phpbb\auth\provider\provider_interface
+abstract class base implements provider_interface
 {
 	/**
 	* {@inheritdoc}
@@ -85,7 +85,7 @@ abstract class base implements \phpbb\auth\provider\provider_interface
 	/**
 	* {@inheritdoc}
 	*/
-	public function login_link_has_necessary_data($login_link_data)
+	public function login_link_has_necessary_data(array $login_link_data)
 	{
 		return;
 	}

@@ -47,7 +47,7 @@ $sort_days		= $request->variable('st', 0);
 $sort_key		= $request->variable('sk', 't');
 $sort_dir		= $request->variable('sd', 'd');
 
-$return_chars	= $request->variable('ch', ($topic_id) ? -1 : 300);
+$return_chars	= $request->variable('ch', $topic_id ? 0 : (int) $config['default_search_return_chars']);
 $search_forum	= $request->variable('fid', array(0));
 
 // We put login boxes for the case if search_id is newposts, egosearch or unreadposts
@@ -128,6 +128,11 @@ $phpbb_content_visibility = $phpbb_container->get('content.visibility');
 
 /* @var $pagination \phpbb\pagination */
 $pagination = $phpbb_container->get('pagination');
+
+$template->assign_block_vars('navlinks', array(
+	'BREADCRUMB_NAME'	=> $user->lang('SEARCH'),
+	'U_BREADCRUMB'		=> append_sid("{$phpbb_root_path}search.$phpEx"),
+));
 
 /**
 * This event allows you to alter the above parameters, such as keywords and submit
@@ -511,6 +516,11 @@ if ($keywords || $author || $author_id || $search_id || $submit)
 				$l_search_title = $user->lang['SEARCH_SELF'];
 			break;
 		}
+
+		$template->assign_block_vars('navlinks', array(
+			'BREADCRUMB_NAME'	=> $l_search_title,
+			'U_BREADCRUMB'		=> append_sid("{$phpbb_root_path}search.$phpEx", "search_id=$search_id"),
+		));
 	}
 
 	/**
@@ -668,21 +678,21 @@ if ($keywords || $author || $author_id || $search_id || $submit)
 	$hilit = phpbb_clean_search_string(str_replace(array('+', '-', '|', '(', ')', '&quot;'), ' ', $keywords));
 	$hilit = str_replace(' ', '|', $hilit);
 
-	$u_hilit = urlencode(htmlspecialchars_decode(str_replace('|', ' ', $hilit)));
+	$u_hilit = urlencode(htmlspecialchars_decode(str_replace('|', ' ', $hilit), ENT_COMPAT));
 	$u_show_results = '&amp;sr=' . $show_results;
 	$u_search_forum = implode('&amp;fid%5B%5D=', $search_forum);
 
 	$u_search = append_sid("{$phpbb_root_path}search.$phpEx", $u_sort_param . $u_show_results);
 	$u_search .= ($search_id) ? '&amp;search_id=' . $search_id : '';
-	$u_search .= ($u_hilit) ? '&amp;keywords=' . urlencode(htmlspecialchars_decode($keywords)) : '';
+	$u_search .= ($u_hilit) ? '&amp;keywords=' . urlencode(htmlspecialchars_decode($keywords, ENT_COMPAT)) : '';
 	$u_search .= ($search_terms != 'all') ? '&amp;terms=' . $search_terms : '';
 	$u_search .= ($topic_id) ? '&amp;t=' . $topic_id : '';
-	$u_search .= ($author) ? '&amp;author=' . urlencode(htmlspecialchars_decode($author)) : '';
+	$u_search .= ($author) ? '&amp;author=' . urlencode(htmlspecialchars_decode($author, ENT_COMPAT)) : '';
 	$u_search .= ($author_id) ? '&amp;author_id=' . $author_id : '';
 	$u_search .= ($u_search_forum) ? '&amp;fid%5B%5D=' . $u_search_forum : '';
 	$u_search .= (!$search_child) ? '&amp;sc=0' : '';
 	$u_search .= ($search_fields != 'all') ? '&amp;sf=' . $search_fields : '';
-	$u_search .= ($return_chars != 300) ? '&amp;ch=' . $return_chars : '';
+	$u_search .= $return_chars !== (int) $config['default_search_return_chars'] ? '&amp;ch=' . $return_chars : '';
 
 	/**
 	* Event to add or modify search URL parameters
@@ -710,6 +720,8 @@ if ($keywords || $author || $author_id || $search_id || $submit)
 
 	if ($sql_where)
 	{
+		$zebra = [];
+
 		if ($show_results == 'posts')
 		{
 			// @todo Joining this query to the one below?
@@ -718,7 +730,6 @@ if ($keywords || $author || $author_id || $search_id || $submit)
 				WHERE user_id = ' . $user->data['user_id'];
 			$result = $db->sql_query($sql);
 
-			$zebra = array();
 			while ($row = $db->sql_fetchrow($result))
 			{
 				$zebra[($row['friend']) ? 'friend' : 'foe'][] = $row['zebra_id'];
@@ -964,7 +975,7 @@ if ($keywords || $author || $author_id || $search_id || $submit)
 					strip_bbcode($text_only_message, $row['bbcode_uid']);
 				}
 
-				if ($return_chars == -1 || utf8_strlen($text_only_message) < ($return_chars + 3))
+				if ($return_chars === 0 || utf8_strlen($text_only_message) < ($return_chars + 3))
 				{
 					$row['display_text_only'] = false;
 
@@ -1065,8 +1076,12 @@ if ($keywords || $author || $author_id || $search_id || $submit)
 			$topic_title = censor_text($row['topic_title']);
 			$replies = $phpbb_content_visibility->get_count('topic_posts', $row, $forum_id) - 1;
 
-			$view_topic_url_params = "f=$forum_id&amp;t=$result_topic_id" . (($u_hilit) ? "&amp;hilit=$u_hilit" : '');
+			$view_topic_url_params = "t=$result_topic_id" . (($u_hilit) ? "&amp;hilit=$u_hilit" : '');
 			$view_topic_url = append_sid("{$phpbb_root_path}viewtopic.$phpEx", $view_topic_url_params);
+
+			$folder_img = $folder_alt = $u_mcp_queue = '';
+			$topic_type = $posts_unapproved = 0;
+			$unread_topic = $topic_unapproved = $topic_deleted = false;
 
 			if ($show_results == 'topics')
 			{
@@ -1075,7 +1090,6 @@ if ($keywords || $author || $author_id || $search_id || $submit)
 					$row['topic_posted'] = 1;
 				}
 
-				$folder_img = $folder_alt = $topic_type = '';
 				topic_status($row, $replies, (isset($topic_tracking_info[$forum_id][$row['topic_id']]) && $row['topic_last_post_time'] > $topic_tracking_info[$forum_id][$row['topic_id']]) ? true : false, $folder_img, $folder_alt, $topic_type);
 
 				$unread_topic = (isset($topic_tracking_info[$forum_id][$row['topic_id']]) && $row['topic_last_post_time'] > $topic_tracking_info[$forum_id][$row['topic_id']]) ? true : false;
@@ -1125,7 +1139,7 @@ if ($keywords || $author || $author_id || $search_id || $submit)
 					'S_TOPIC_DELETED'		=> $topic_deleted,
 					'S_HAS_POLL'			=> ($row['poll_start']) ? true : false,
 
-					'U_LAST_POST'			=> append_sid("{$phpbb_root_path}viewtopic.$phpEx", $view_topic_url_params . '&amp;p=' . $row['topic_last_post_id']) . '#p' . $row['topic_last_post_id'],
+					'U_LAST_POST'			=> append_sid("{$phpbb_root_path}viewtopic.$phpEx", 'p=' . $row['topic_last_post_id']) . '#p' . $row['topic_last_post_id'],
 					'U_LAST_POST_AUTHOR'	=> get_username_string('profile', $row['topic_last_poster_id'], $row['topic_last_poster_name'], $row['topic_last_poster_colour']),
 					'U_TOPIC_AUTHOR'		=> get_username_string('profile', $row['topic_poster'], $row['topic_first_poster_name'], $row['topic_first_poster_colour']),
 					'U_NEWEST_POST'			=> append_sid("{$phpbb_root_path}viewtopic.$phpEx", $view_topic_url_params . '&amp;view=unread') . '#unread',
@@ -1200,7 +1214,7 @@ if ($keywords || $author || $author_id || $search_id || $submit)
 
 				'U_VIEW_TOPIC'		=> $view_topic_url,
 				'U_VIEW_FORUM'		=> append_sid("{$phpbb_root_path}viewforum.$phpEx", 'f=' . $forum_id),
-				'U_VIEW_POST'		=> (!empty($row['post_id'])) ? append_sid("{$phpbb_root_path}viewtopic.$phpEx", "f=$forum_id&amp;t=" . $row['topic_id'] . '&amp;p=' . $row['post_id'] . (($u_hilit) ? '&amp;hilit=' . $u_hilit : '')) . '#p' . $row['post_id'] : '',
+				'U_VIEW_POST'		=> (!empty($row['post_id'])) ? append_sid("{$phpbb_root_path}viewtopic.$phpEx", 'p=' . $row['post_id'] . (($u_hilit) ? '&amp;hilit=' . $u_hilit : '')) . '#p' . $row['post_id'] : '',
 			));
 
 			/**
@@ -1461,16 +1475,27 @@ if (!$s_forums)
 	trigger_error('NO_SEARCH');
 }
 
-// Number of chars returned
-$s_characters = '<option value="-1">' . $user->lang['ALL_AVAILABLE'] . '</option>';
-$s_characters .= '<option value="0">0</option>';
-$s_characters .= '<option value="25">25</option>';
-$s_characters .= '<option value="50">50</option>';
+/**
+ * Build options for a select list for the number of characters returned.
+ *
+ * If the admin defined amount is not within the predefined range,
+ * and the admin did not set it to unlimited (0), we add that option aswell.
+ *
+ * @deprecated 3.3.1-RC1	Templates should use an numeric input, in favor of a select.
+ */
+$s_characters = '<option value="0">' . $language->lang('ALL_AVAILABLE') . '</option>';
+$i_characters = array_merge([25, 50], range(100, 1000, 100));
 
-for ($i = 100; $i <= 1000; $i += 100)
+if ($config['default_search_return_chars'] && !in_array((int) $config['default_search_return_chars'], $i_characters))
 {
-	$selected = ($i == 300) ? ' selected="selected"' : '';
-	$s_characters .= '<option value="' . $i . '"' . $selected . '>' . $i . '</option>';
+	$i_characters[] = (int) $config['default_search_return_chars'];
+	sort($i_characters);
+}
+
+foreach ($i_characters as $i)
+{
+	$selected = $i === (int) $config['default_search_return_chars'] ? ' selected="selected"' : '';
+	$s_characters .= sprintf('<option value="%1$s"%2$s>%1$s</option>', $i, $selected);
 }
 
 $s_hidden_fields = array('t' => $topic_id);
@@ -1490,6 +1515,7 @@ if (!empty($_EXTRA_URL))
 }
 
 $template->assign_vars(array(
+	'DEFAULT_RETURN_CHARS'	=> (int) $config['default_search_return_chars'],
 	'S_SEARCH_ACTION'		=> append_sid("{$phpbb_root_path}search.$phpEx", false, true, 0), // We force no ?sid= appending by using 0
 	'S_HIDDEN_FIELDS'		=> build_hidden_fields($s_hidden_fields),
 	'S_CHARACTER_OPTIONS'	=> $s_characters,
@@ -1538,7 +1564,7 @@ if ($auth->acl_get('a_search'))
 			'KEYWORDS'	=> $keywords,
 			'TIME'		=> $user->format_date($row['search_time']),
 
-			'U_KEYWORDS'	=> append_sid("{$phpbb_root_path}search.$phpEx", 'keywords=' . urlencode(htmlspecialchars_decode($keywords)))
+			'U_KEYWORDS'	=> append_sid("{$phpbb_root_path}search.$phpEx", 'keywords=' . urlencode(htmlspecialchars_decode($keywords, ENT_COMPAT)))
 		));
 	}
 	$db->sql_freeresult($result);

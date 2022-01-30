@@ -169,7 +169,7 @@ function parse_document(container)
 			ul = $this.children(),
 			tabs = ul.children().not('[data-skip-responsive]'),
 			links = tabs.children('a'),
-			item = ul.append('<li class="tab responsive-tab" style="display:none;"><a href="javascript:void(0);" class="responsive-tab-link">&nbsp;</a><div class="dropdown tab-dropdown" style="display: none;"><div class="pointer"><div class="pointer-inner" /></div><ul class="dropdown-contents" /></div></li>').find('li.responsive-tab'),
+			item = ul.append('<li class="tab responsive-tab" style="display:none;"><a href="javascript:void(0);" class="responsive-tab-link">&nbsp;</a><div class="dropdown tab-dropdown" style="display: none;"><div class="pointer"><div class="pointer-inner"></div></div><ul class="dropdown-contents" /></div></li>').find('li.responsive-tab'),
 			menu = item.find('.dropdown-contents'),
 			maxHeight = 0,
 			lastWidth = false,
@@ -254,5 +254,10 @@ function parse_document(container)
 		});
 
 		$('#configlist').closest('.send-stats-data-row').addClass('send-stats-data-hidden');
+
+		// Do not underline actions icons on hover (could not be done via CSS)
+		$('.actions a:has(i.acp-icon)').mouseover(function () {
+			$(this).css("text-decoration", "none");
+		});
 	});
 })(jQuery);

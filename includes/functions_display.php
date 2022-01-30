@@ -30,6 +30,7 @@ function display_forums($root_data = '', $display_moderators = true, $return_mod
 
 	$forum_rows = $subforums = $forum_ids = $forum_ids_moderator = $forum_moderators = $active_forum_ary = array();
 	$parent_id = $visible_forums = 0;
+	$parent_subforum_limit = false;
 
 	// Mark forums read?
 	$mark_read = $request->variable('mark', '');
@@ -266,6 +267,7 @@ function display_forums($root_data = '', $display_moderators = true, $return_mod
 
 			// Direct child of current branch
 			$parent_id = $forum_id;
+			$parent_subforum_limit = $row['display_subforum_limit'] ?? false;
 			$forum_rows[$forum_id] = $row;
 
 			if ($row['forum_type'] == FORUM_CAT && $row['parent_id'] == $root_data['forum_id'])
@@ -278,7 +280,7 @@ function display_forums($root_data = '', $display_moderators = true, $return_mod
 		}
 		else if ($row['forum_type'] != FORUM_CAT)
 		{
-			$subforums[$parent_id][$forum_id]['display'] = ($row['display_on_index']) ? true : false;
+			$subforums[$parent_id][$forum_id]['display'] = ($row['display_on_index'] && (!$parent_subforum_limit || $parent_id == $row['parent_id']));
 			$subforums[$parent_id][$forum_id]['name'] = $row['forum_name'];
 			$subforums[$parent_id][$forum_id]['orig_forum_last_post_time'] = $row['forum_last_post_time'];
 			$subforums[$parent_id][$forum_id]['children'] = array();
@@ -549,7 +551,7 @@ function display_forums($root_data = '', $display_moderators = true, $return_mod
 			}
 			$last_post_time = $user->format_date($row['forum_last_post_time']);
 			$last_post_time_rfc3339 = gmdate(DATE_RFC3339, $row['forum_last_post_time']);
-			$last_post_url = append_sid("{$phpbb_root_path}viewtopic.$phpEx", 'f=' . $row['forum_id_last_post'] . '&amp;p=' . $row['forum_last_post_id']) . '#p' . $row['forum_last_post_id'];
+			$last_post_url = append_sid("{$phpbb_root_path}viewtopic.$phpEx", 'p=' . $row['forum_last_post_id']) . '#p' . $row['forum_last_post_id'];
 		}
 		else
 		{
@@ -786,25 +788,25 @@ function generate_forum_nav(&$forum_data_ary)
 			}
 
 			$navlinks_parents[] = array(
-				'S_IS_CAT'		=> ($parent_type == FORUM_CAT) ? true : false,
-				'S_IS_LINK'		=> ($parent_type == FORUM_LINK) ? true : false,
-				'S_IS_POST'		=> ($parent_type == FORUM_POST) ? true : false,
-				'FORUM_NAME'	=> $parent_name,
-				'FORUM_ID'		=> $parent_forum_id,
-				'MICRODATA'		=> $microdata_attr . '="' . $parent_forum_id . '"',
-				'U_VIEW_FORUM'	=> append_sid("{$phpbb_root_path}viewforum.$phpEx", 'f=' . $parent_forum_id),
+				'S_IS_CAT'			=> ($parent_type == FORUM_CAT) ? true : false,
+				'S_IS_LINK'			=> ($parent_type == FORUM_LINK) ? true : false,
+				'S_IS_POST'			=> ($parent_type == FORUM_POST) ? true : false,
+				'BREADCRUMB_NAME'	=> $parent_name,
+				'FORUM_ID'			=> $parent_forum_id,
+				'MICRODATA'			=> $microdata_attr . '="' . $parent_forum_id . '"',
+				'U_BREADCRUMB'		=> append_sid("{$phpbb_root_path}viewforum.$phpEx", 'f=' . $parent_forum_id),
 			);
 		}
 	}
 
 	$navlinks = array(
-		'S_IS_CAT'		=> ($forum_data_ary['forum_type'] == FORUM_CAT) ? true : false,
-		'S_IS_LINK'		=> ($forum_data_ary['forum_type'] == FORUM_LINK) ? true : false,
-		'S_IS_POST'		=> ($forum_data_ary['forum_type'] == FORUM_POST) ? true : false,
-		'FORUM_NAME'	=> $forum_data_ary['forum_name'],
-		'FORUM_ID'		=> $forum_data_ary['forum_id'],
-		'MICRODATA'		=> $microdata_attr . '="' . $forum_data_ary['forum_id'] . '"',
-		'U_VIEW_FORUM'	=> append_sid("{$phpbb_root_path}viewforum.$phpEx", 'f=' . $forum_data_ary['forum_id']),
+		'S_IS_CAT'			=> ($forum_data_ary['forum_type'] == FORUM_CAT) ? true : false,
+		'S_IS_LINK'			=> ($forum_data_ary['forum_type'] == FORUM_LINK) ? true : false,
+		'S_IS_POST'			=> ($forum_data_ary['forum_type'] == FORUM_POST) ? true : false,
+		'BREADCRUMB_NAME'	=> $forum_data_ary['forum_name'],
+		'FORUM_ID'			=> $forum_data_ary['forum_id'],
+		'MICRODATA'			=> $microdata_attr . '="' . $forum_data_ary['forum_id'] . '"',
+		'U_BREADCRUMB'		=> append_sid("{$phpbb_root_path}viewforum.$phpEx", 'f=' . $forum_data_ary['forum_id']),
 	);
 
 	$forum_template_data = array(
@@ -1084,12 +1086,12 @@ function display_custom_bbcodes()
 	// Start counting from 22 for the bbcode ids (every bbcode takes two ids - opening/closing)
 	$num_predefined_bbcodes = NUM_PREDEFINED_BBCODES;
 
-	$sql_ary = array(
-		'SELECT'	=> 'b.bbcode_id, b.bbcode_tag, b.bbcode_helpline',
-		'FROM'		=> array(BBCODES_TABLE => 'b'),
+	$sql_ary = [
+		'SELECT'	=> 'b.bbcode_id, b.bbcode_tag, b.bbcode_helpline, b.bbcode_match',
+		'FROM'		=> [BBCODES_TABLE => 'b'],
 		'WHERE'		=> 'b.display_on_posting = 1',
 		'ORDER_BY'	=> 'b.bbcode_tag',
-	);
+	];
 
 	/**
 	* Event to modify the SQL query before custom bbcode data is queried
@@ -1117,13 +1119,18 @@ function display_custom_bbcodes()
 		// Convert Numeric Character References to UTF-8 chars.
 		$row['bbcode_helpline'] = utf8_decode_ncr($row['bbcode_helpline']);
 
-		$custom_tags = array(
-			'BBCODE_NAME'		=> "'[{$row['bbcode_tag']}]', '[/" . str_replace('=', '', $row['bbcode_tag']) . "]'",
+		// Does the closing bbcode tag exists? If so display it.
+		$bbcode_close_tag	= '%\[\/' . utf8_strtolower($row['bbcode_tag']) . '\]%';
+		$bbcode_match_str	= utf8_strtolower($row['bbcode_match']);
+		$bbcode_name_clean	= preg_match($bbcode_close_tag, $bbcode_match_str) ? "'[{$row['bbcode_tag']}]', '[/" . str_replace('=', '', $row['bbcode_tag']) . "]'" : "'[{$row['bbcode_tag']}]', ''";
+
+		$custom_tags = [
+			'BBCODE_NAME'		=> $bbcode_name_clean,
 			'BBCODE_ID'			=> $num_predefined_bbcodes + ($i * 2),
 			'BBCODE_TAG'		=> $row['bbcode_tag'],
 			'BBCODE_TAG_CLEAN'	=> str_replace('=', '-', $row['bbcode_tag']),
 			'BBCODE_HELPLINE'	=> $row['bbcode_helpline'],
-		);
+		];
 
 		/**
 		* Event to modify the template data block of a custom bbcode
@@ -1151,18 +1158,6 @@ function display_custom_bbcodes()
 	* @since 3.1.0-a1
 	*/
 	$phpbb_dispatcher->dispatch('core.display_custom_bbcodes');
-}
-
-/**
-* Display reasons
-*
-* @deprecated 3.2.0-dev
-*/
-function display_reasons($reason_id = 0)
-{
-	global $phpbb_container;
-
-	$phpbb_container->get('phpbb.report.report_reason_list_provider')->display_reasons($reason_id);
 }
 
 /**

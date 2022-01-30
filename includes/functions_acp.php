@@ -88,20 +88,21 @@ function adm_page_header($page_title)
 		'T_ICONS_PATH'			=> "{$phpbb_root_path}{$config['icons_path']}/",
 		'T_RANKS_PATH'			=> "{$phpbb_root_path}{$config['ranks_path']}/",
 		'T_UPLOAD_PATH'			=> "{$phpbb_root_path}{$config['upload_path']}/",
+
 		'T_FONT_AWESOME_LINK'	=> !empty($config['allow_cdn']) && !empty($config['load_font_awesome_url']) ? $config['load_font_awesome_url'] : "{$phpbb_root_path}assets/css/font-awesome.min.css?assets_version=" . $config['assets_version'],
 
 		'T_ASSETS_VERSION'		=> $config['assets_version'],
 
-		'ICON_MOVE_UP'				=> '<img src="' . htmlspecialchars($phpbb_admin_path) . 'images/icon_up.gif" alt="' . $user->lang['MOVE_UP'] . '" title="' . $user->lang['MOVE_UP'] . '" />',
-		'ICON_MOVE_UP_DISABLED'		=> '<img src="' . htmlspecialchars($phpbb_admin_path) . 'images/icon_up_disabled.gif" alt="' . $user->lang['MOVE_UP'] . '" title="' . $user->lang['MOVE_UP'] . '" />',
-		'ICON_MOVE_DOWN'			=> '<img src="' . htmlspecialchars($phpbb_admin_path) . 'images/icon_down.gif" alt="' . $user->lang['MOVE_DOWN'] . '" title="' . $user->lang['MOVE_DOWN'] . '" />',
-		'ICON_MOVE_DOWN_DISABLED'	=> '<img src="' . htmlspecialchars($phpbb_admin_path) . 'images/icon_down_disabled.gif" alt="' . $user->lang['MOVE_DOWN'] . '" title="' . $user->lang['MOVE_DOWN'] . '" />',
-		'ICON_EDIT'					=> '<img src="' . htmlspecialchars($phpbb_admin_path) . 'images/icon_edit.gif" alt="' . $user->lang['EDIT'] . '" title="' . $user->lang['EDIT'] . '" />',
-		'ICON_EDIT_DISABLED'		=> '<img src="' . htmlspecialchars($phpbb_admin_path) . 'images/icon_edit_disabled.gif" alt="' . $user->lang['EDIT'] . '" title="' . $user->lang['EDIT'] . '" />',
-		'ICON_DELETE'				=> '<img src="' . htmlspecialchars($phpbb_admin_path) . 'images/icon_delete.gif" alt="' . $user->lang['DELETE'] . '" title="' . $user->lang['DELETE'] . '" />',
-		'ICON_DELETE_DISABLED'		=> '<img src="' . htmlspecialchars($phpbb_admin_path) . 'images/icon_delete_disabled.gif" alt="' . $user->lang['DELETE'] . '" title="' . $user->lang['DELETE'] . '" />',
-		'ICON_SYNC'					=> '<img src="' . htmlspecialchars($phpbb_admin_path) . 'images/icon_sync.gif" alt="' . $user->lang['RESYNC'] . '" title="' . $user->lang['RESYNC'] . '" />',
-		'ICON_SYNC_DISABLED'		=> '<img src="' . htmlspecialchars($phpbb_admin_path) . 'images/icon_sync_disabled.gif" alt="' . $user->lang['RESYNC'] . '" title="' . $user->lang['RESYNC'] . '" />',
+		'ICON_MOVE_UP'				=> '<i class="icon acp-icon acp-icon-move-up fa-arrow-circle-up fa-fw" title="' . $user->lang('MOVE_UP') . '"></i>',
+		'ICON_MOVE_UP_DISABLED'		=> '<i class="icon acp-icon acp-icon-disabled fa-arrow-circle-up fa-fw" title="' . $user->lang('MOVE_UP') . '"></i>',
+		'ICON_MOVE_DOWN'			=> '<i class="icon acp-icon acp-icon-move-down fa-arrow-circle-down fa-fw" title="' . $user->lang('MOVE_DOWN') . '"></i>',
+		'ICON_MOVE_DOWN_DISABLED'	=> '<i class="icon acp-icon acp-icon-disabled fa-arrow-circle-down fa-fw" title="' . $user->lang('MOVE_DOWN') . '"></i>',
+		'ICON_EDIT'					=> '<i class="icon acp-icon acp-icon-settings fa-cog fa-fw" title="' . $user->lang('EDIT') . '"></i>',
+		'ICON_EDIT_DISABLED'		=> '<i class="icon acp-icon acp-icon-disabled fa-cog fa-fw" title="' . $user->lang('EDIT') . '"></i>',
+		'ICON_DELETE'				=> '<i class="icon acp-icon acp-icon-delete fa-times-circle fa-fw" title="' . $user->lang('DELETE') . '"></i>',
+		'ICON_DELETE_DISABLED'		=> '<i class="icon acp-icon acp-icon-disabled fa-times-circle fa-fw" title="' . $user->lang('DELETE') . '"></i>',
+		'ICON_SYNC'					=> '<i class="icon acp-icon acp-icon-resync fa-refresh fa-fw" title="' . $user->lang('RESYNC') . '"></i>',
+		'ICON_SYNC_DISABLED'		=> '<i class="icon acp-icon acp-icon-disabled fa-refresh fa-fw" title="' . $user->lang('RESYNC') . '"></i>',
 
 		'S_USER_LANG'			=> $user->lang['USER_LANG'],
 		'S_CONTENT_DIRECTION'	=> $user->lang['DIRECTION'],
@@ -177,7 +178,7 @@ function adm_page_footer($copyright_html = true)
 		'TRANSLATION_INFO'	=> (!empty($user->lang['TRANSLATION_INFO'])) ? $user->lang['TRANSLATION_INFO'] : '',
 		'S_COPYRIGHT_HTML'	=> $copyright_html,
 		'CREDIT_LINE'		=> $user->lang('POWERED_BY', '<a href="https://www.phpbb.com/">phpBB</a>&reg; Forum Software &copy; phpBB Limited'),
-		'T_JQUERY_LINK'		=> !empty($config['allow_cdn']) && !empty($config['load_jquery_url']) ? $config['load_jquery_url'] : "{$phpbb_root_path}assets/javascript/jquery.min.js",
+		'T_JQUERY_LINK'		=> !empty($config['allow_cdn']) && !empty($config['load_jquery_url']) ? $config['load_jquery_url'] : "{$phpbb_root_path}assets/javascript/jquery-3.6.0.min.js",
 		'S_ALLOW_CDN'		=> !empty($config['allow_cdn']),
 		'VERSION'			=> $config['version'])
 	);
@@ -282,27 +283,17 @@ function build_cfg_template($tpl_type, $key, &$new_ary, $config_key, $vars)
 		case 'time':
 		case 'number':
 		case 'range':
-			$max = '';
-			$min = ( isset($tpl_type[1]) ) ? (int) $tpl_type[1] : false;
-			if ( isset($tpl_type[2]) )
-			{
-				$max = (int) $tpl_type[2];
-			}
+			$min = isset($tpl_type[1]) ? (int) $tpl_type[1] : false;
+			$max = isset($tpl_type[2]) ? (int) $tpl_type[2] : false;
 
-			$tpl = '<input id="' . $key . '" type="' . $tpl_type[0] . '"' . (( $min != '' ) ? ' min="' . $min . '"' : '') . (( $max != '' ) ? ' max="' . $max . '"' : '') . ' name="' . $name . '" value="' . $new_ary[$config_key] . '" />';
+			$tpl = '<input id="' . $key . '" type="' . $tpl_type[0] . '"' . (( $min !== false ) ? ' min="' . $min . '"' : '') . (( $max !== false ) ? ' max="' . $max . '"' : '') . ' name="' . $name . '" value="' . $new_ary[$config_key] . '" />';
 		break;
 
 		case 'dimension':
-			$max = '';
+			$min = isset($tpl_type[1]) ? (int) $tpl_type[1] : false;
+			$max = isset($tpl_type[2]) ? (int) $tpl_type[2] : false;
 
-			$min = (int) $tpl_type[1];
-
-			if ( isset($tpl_type[2]) )
-			{
-				$max = (int) $tpl_type[2];
-			}
-
-			$tpl = '<input id="' . $key . '" type="number"' . (( $min !== '' ) ? ' min="' . $min . '"' : '') . (( $max != '' ) ? ' max="' . $max . '"' : '') . ' name="config[' . $config_key . '_width]" value="' . $new_ary[$config_key . '_width'] . '" /> x <input type="number"' . (( $min !== '' ) ? ' min="' . $min . '"' : '') . (( $max != '' ) ? ' max="' . $max . '"' : '') . ' name="config[' . $config_key . '_height]" value="' . $new_ary[$config_key . '_height'] . '" />';
+			$tpl = '<input id="' . $key . '" type="number"' . (( $min !== false ) ? ' min="' . $min . '"' : '') . (( $max !== false ) ? ' max="' . $max . '"' : '') . ' name="config[' . $config_key . '_width]" value="' . $new_ary[$config_key . '_width'] . '" /> x <input type="number"' . (( $min !== '' ) ? ' min="' . $min . '"' : '') . (( $max != '' ) ? ' max="' . $max . '"' : '') . ' name="config[' . $config_key . '_height]" value="' . $new_ary[$config_key . '_height'] . '" />';
 		break;
 
 		case 'textarea':
@@ -444,13 +435,27 @@ function validate_config_vars($config_vars, &$cfg_array, &$error)
 		switch ($validator[$type])
 		{
 			case 'url':
-				$cfg_array[$config_name] = trim($cfg_array[$config_name]);
-
-				if (!empty($cfg_array[$config_name]) && !preg_match('#^' . get_preg_expression('url') . '$#iu', $cfg_array[$config_name]))
+			case 'csv':
+				if ($validator[$type] == 'url')
 				{
-					$error[] = $language->lang('URL_INVALID', $language->lang($config_definition['lang']));
-				}
+					$cfg_array[$config_name] = trim($cfg_array[$config_name]);
 
+					if (!empty($cfg_array[$config_name]) && !preg_match('#^' . get_preg_expression('url') . '$#iu', $cfg_array[$config_name]))
+					{
+						$error[] = $language->lang('URL_INVALID', $language->lang($config_definition['lang']));
+					}
+				}
+				else if ($validator[$type] == 'csv')
+				{
+					// Validate comma separated values
+					$unfiltered_array = explode(',', $cfg_array[$config_name]);
+					$filtered_array = array_filter($unfiltered_array);
+					if (!empty($filtered_array) && count($unfiltered_array) !== count($filtered_array))
+					{
+						$error[] = $language->lang('CSV_INVALID', $language->lang($config_definition['lang']));
+					}
+
+				}
 			// no break here
 
 			case 'string':

@@ -226,16 +226,6 @@ $lang = array_merge($lang, array(
 
 	'BACK'					=> 'Back',
 
-	'CANNOT_CHANGE_FILE_GROUP'	=> 'Unable to change file group',
-	'CANNOT_CHANGE_FILE_PERMISSIONS'	=> 'Unable to change file permissions',
-	'CANNOT_COPY_FILES'		=> 'Unable to copy files',
-	'CANNOT_CREATE_SYMLINK'	=> 'Unable to create a symlink',
-	'CANNOT_DELETE_FILES'	=> 'Unable to delete files from the system',
-	'CANNOT_DUMP_FILE'		=> 'Unable to dump file',
-	'CANNOT_MIRROR_DIRECTORY'	=> 'Unable to mirror directory',
-	'CANNOT_RENAME_FILE'	=> 'Unable to rename a file from the system',
-	'CANNOT_TOUCH_FILES'	=> 'Unable to determine if the file exists',
-
 	'CONTAINER_EXCEPTION' => 'phpBB encountered an error building the container due to an installed extension. For this reason, all extensions have been temporarily disabled. Please try purging your forum cache. All extensions will automatically be re-enabled once the container error is resolved. If this error continues, please visit <a href="https://www.phpbb.com/support">phpBB.com</a> for support.',
 	'EXCEPTION' => 'Exception',
 
@@ -245,6 +235,7 @@ $lang = array_merge($lang, array(
 	'CRON_NO_SUCH_TASK'		=> 'Could not find cron task “%s”.',
 	'CRON_NO_TASK'			=> 'No cron tasks need to be run right now.',
 	'CRON_NO_TASKS'			=> 'No cron tasks could be found.',
+	'CSV_INVALID'			=> 'The provided comma-separated setting “%1$s” is invalid. The values should be delimited by comma only, it should not contain any leading or trailing delimiters.',
 	'CURRENT_VERSION'		=> 'Current version',
 
 	'DEACTIVATE'				=> 'Deactivate',
@@ -326,6 +317,7 @@ $lang = array_merge($lang, array(
 
 	'UCP'					=> 'User Control Panel',
 	'URL_INVALID'			=> 'The provided URL for the setting “%1$s” is invalid.',
+	'URL_SCHEME_INVALID'	=> 'The provided scheme “%2$s” in comma-separated setting “%1$s” is invalid. Scheme should start with a latin character followed by alphanumeric characters, hyphens or dots.',
 	'USERNAMES_EXPLAIN'		=> 'Place each username on a separate line.',
 	'USER_CONTROL_PANEL'	=> 'User Control Panel',
 
@@ -373,15 +365,17 @@ $lang = array_merge($lang, array(
 	'DATABASE_SERVER_INFO'	=> 'Database server',
 	'DATABASE_SIZE'			=> 'Database size',
 
-	// Enviroment configuration checks, mbstring related
+	// Environment configuration checks, mbstring related
 	'ERROR_MBSTRING_FUNC_OVERLOAD'					=> 'Function overloading is improperly configured',
 	'ERROR_MBSTRING_FUNC_OVERLOAD_EXPLAIN'			=> '<var>mbstring.func_overload</var> must be set to either 0 or 4. You can check the current value on the <samp>PHP information</samp> page.',
 	'ERROR_MBSTRING_ENCODING_TRANSLATION'			=> 'Transparent character encoding is improperly configured',
 	'ERROR_MBSTRING_ENCODING_TRANSLATION_EXPLAIN'	=> '<var>mbstring.encoding_translation</var> must be set to 0. You can check the current value on the <samp>PHP information</samp> page.',
 	'ERROR_MBSTRING_HTTP_INPUT'						=> 'HTTP input character conversion is improperly configured',
-	'ERROR_MBSTRING_HTTP_INPUT_EXPLAIN'				=> '<var>mbstring.http_input</var> must be set to <samp>pass</samp>. You can check the current value on the <samp>PHP information</samp> page.',
+	'ERROR_MBSTRING_HTTP_INPUT_EXPLAIN'				=> '<var>mbstring.http_input</var> must be left empty. You can check the current value on the <samp>PHP information</samp> page.',
 	'ERROR_MBSTRING_HTTP_OUTPUT'					=> 'HTTP output character conversion is improperly configured',
-	'ERROR_MBSTRING_HTTP_OUTPUT_EXPLAIN'			=> '<var>mbstring.http_output</var> must be set to <samp>pass</samp>. You can check the current value on the <samp>PHP information</samp> page.',
+	'ERROR_MBSTRING_HTTP_OUTPUT_EXPLAIN'			=> '<var>mbstring.http_output</var> must be left empty. You can check the current value on the <samp>PHP information</samp> page.',
+	'ERROR_DEFAULT_CHARSET'							=> 'Default charset is improperly configured',
+	'ERROR_DEFAULT_CHARSET_EXPLAIN'					=> '<var>default_charset</var> must be set to <samp>UTF-8</samp>. You can check the current value on the <samp>PHP information</samp> page.',
 
 	'FILES_PER_DAY'		=> 'Attachments per day',
 	'FORUM_STATS'		=> 'Board statistics',

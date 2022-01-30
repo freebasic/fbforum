@@ -1,4 +1,5 @@
 <?php
+
 /**
 *
 * This file is part of the phpBB Forum Software package.
@@ -13,32 +14,42 @@
 
 namespace phpbb\auth\provider;
 
+use phpbb\config\config;
+use phpbb\db\driver\driver_interface;
+use phpbb\language\language;
+use phpbb\user;
+
 /**
  * Database authentication provider for phpBB3
  * This is for authentication via the integrated user table
  */
-class ldap extends \phpbb\auth\provider\base
+class ldap extends base
 {
-	/**
-	* phpBB passwords manager
-	*
-	* @var \phpbb\passwords\manager
-	*/
-	protected $passwords_manager;
+	/** @var config phpBB config */
+	protected $config;
+
+	/** @var driver_interface DBAL driver interface */
+	protected $db;
+
+	/** @var language phpBB language class */
+	protected $language;
+
+	/** @var user phpBB user */
+	protected $user;
 
 	/**
 	 * LDAP Authentication Constructor
 	 *
-	 * @param	\phpbb\db\driver\driver_interface		$db		Database object
-	 * @param	\phpbb\config\config		$config		Config object
-	 * @param	\phpbb\passwords\manager	$passwords_manager		Passwords manager object
-	 * @param	\phpbb\user			$user		User object
+	 * @param	config				$config		Config object
+	 * @param	driver_interface	$db			DBAL driver interface
+	 * @param	language			$language	Language object
+	 * @param	user				$user		User object
 	 */
-	public function __construct(\phpbb\db\driver\driver_interface $db, \phpbb\config\config $config, \phpbb\passwords\manager $passwords_manager, \phpbb\user $user)
+	public function __construct(config $config, driver_interface $db, language $language, user $user)
 	{
-		$this->db = $db;
 		$this->config = $config;
-		$this->passwords_manager = $passwords_manager;
+		$this->db = $db;
+		$this->language = $language;
 		$this->user = $user;
 	}
 
@@ -49,7 +60,7 @@ class ldap extends \phpbb\auth\provider\base
 	{
 		if (!@extension_loaded('ldap'))
 		{
-			return $this->user->lang['LDAP_NO_LDAP_EXTENSION'];
+			return $this->language->lang('LDAP_NO_LDAP_EXTENSION');
 		}
 
 		$this->config['ldap_port'] = (int) $this->config['ldap_port'];
@@ -64,7 +75,7 @@ class ldap extends \phpbb\auth\provider\base
 
 		if (!$ldap)
 		{
-			return $this->user->lang['LDAP_NO_SERVER_CONNECTION'];
+			return $this->language->lang('LDAP_NO_SERVER_CONNECTION');
 		}
 
 		@ldap_set_option($ldap, LDAP_OPT_PROTOCOL_VERSION, 3);
@@ -72,27 +83,27 @@ class ldap extends \phpbb\auth\provider\base
 
 		if ($this->config['ldap_user'] || $this->config['ldap_password'])
 		{
-			if (!@ldap_bind($ldap, htmlspecialchars_decode($this->config['ldap_user']), htmlspecialchars_decode($this->config['ldap_password'])))
+			if (!@ldap_bind($ldap, htmlspecialchars_decode($this->config['ldap_user'], ENT_COMPAT), htmlspecialchars_decode($this->config['ldap_password'], ENT_COMPAT)))
 			{
-				return $this->user->lang['LDAP_INCORRECT_USER_PASSWORD'];
+				return $this->language->lang('LDAP_INCORRECT_USER_PASSWORD');
 			}
 		}
 
 		// ldap_connect only checks whether the specified server is valid, so the connection might still fail
 		$search = @ldap_search(
 			$ldap,
-			htmlspecialchars_decode($this->config['ldap_base_dn']),
+			htmlspecialchars_decode($this->config['ldap_base_dn'], ENT_COMPAT),
 			$this->ldap_user_filter($this->user->data['username']),
 			(empty($this->config['ldap_email'])) ?
-				array(htmlspecialchars_decode($this->config['ldap_uid'])) :
-				array(htmlspecialchars_decode($this->config['ldap_uid']), htmlspecialchars_decode($this->config['ldap_email'])),
+				array(htmlspecialchars_decode($this->config['ldap_uid'], ENT_COMPAT)) :
+				array(htmlspecialchars_decode($this->config['ldap_uid'], ENT_COMPAT), htmlspecialchars_decode($this->config['ldap_email'], ENT_COMPAT)),
 			0,
 			1
 		);
 
 		if ($search === false)
 		{
-			return $this->user->lang['LDAP_SEARCH_FAILED'];
+			return $this->language->lang('LDAP_SEARCH_FAILED');
 		}
 
 		$result = @ldap_get_entries($ldap, $search);
@@ -101,12 +112,12 @@ class ldap extends \phpbb\auth\provider\base
 
 		if (!is_array($result) || count($result) < 2)
 		{
-			return sprintf($this->user->lang['LDAP_NO_IDENTITY'], $this->user->data['username']);
+			return $this->language->lang('LDAP_NO_IDENTITY', $this->user->data['username']);
 		}
 
 		if (!empty($this->config['ldap_email']) && !isset($result[0][htmlspecialchars_decode($this->config['ldap_email'])]))
 		{
-			return $this->user->lang['LDAP_NO_EMAIL'];
+			return $this->language->lang('LDAP_NO_EMAIL');
 		}
 
 		return false;
@@ -169,7 +180,7 @@ class ldap extends \phpbb\auth\provider\base
 
 		if ($this->config['ldap_user'] || $this->config['ldap_password'])
 		{
-			if (!@ldap_bind($ldap, htmlspecialchars_decode($this->config['ldap_user']), htmlspecialchars_decode($this->config['ldap_password'])))
+			if (!@ldap_bind($ldap, htmlspecialchars_decode($this->config['ldap_user'], ENT_COMPAT), htmlspecialchars_decode($this->config['ldap_password'], ENT_COMPAT)))
 			{
 				return array(
 					'status'		=> LOGIN_ERROR_EXTERNAL_AUTH,
@@ -181,11 +192,11 @@ class ldap extends \phpbb\auth\provider\base
 
 		$search = @ldap_search(
 			$ldap,
-			htmlspecialchars_decode($this->config['ldap_base_dn']),
+			htmlspecialchars_decode($this->config['ldap_base_dn'], ENT_COMPAT),
 			$this->ldap_user_filter($username),
 			(empty($this->config['ldap_email'])) ?
-				array(htmlspecialchars_decode($this->config['ldap_uid'])) :
-				array(htmlspecialchars_decode($this->config['ldap_uid']), htmlspecialchars_decode($this->config['ldap_email'])),
+				array(htmlspecialchars_decode($this->config['ldap_uid'], ENT_COMPAT)) :
+				array(htmlspecialchars_decode($this->config['ldap_uid'], ENT_COMPAT), htmlspecialchars_decode($this->config['ldap_email'], ENT_COMPAT)),
 			0,
 			1
 		);
@@ -194,7 +205,7 @@ class ldap extends \phpbb\auth\provider\base
 
 		if (is_array($ldap_result) && count($ldap_result) > 1)
 		{
-			if (@ldap_bind($ldap, $ldap_result[0]['dn'], htmlspecialchars_decode($password)))
+			if (@ldap_bind($ldap, $ldap_result[0]['dn'], htmlspecialchars_decode($password, ENT_COMPAT)))
 			{
 				@ldap_close($ldap);
 
@@ -245,8 +256,8 @@ class ldap extends \phpbb\auth\provider\base
 					// generate user account data
 					$ldap_user_row = array(
 						'username'		=> $username,
-						'user_password'	=> $this->passwords_manager->hash($password),
-						'user_email'	=> (!empty($this->config['ldap_email'])) ? utf8_htmlspecialchars($ldap_result[0][htmlspecialchars_decode($this->config['ldap_email'])][0]) : '',
+						'user_password'	=> '',
+						'user_email'	=> (!empty($this->config['ldap_email'])) ? utf8_htmlspecialchars($ldap_result[0][htmlspecialchars_decode($this->config['ldap_email'], ENT_COMPAT)][0]) : '',
 						'group_id'		=> (int) $row['group_id'],
 						'user_type'		=> USER_NORMAL,
 						'user_ip'		=> $this->user->ip,
@@ -326,7 +337,7 @@ class ldap extends \phpbb\auth\provider\base
 	 */
 	private function ldap_user_filter($username)
 	{
-		$filter = '(' . $this->config['ldap_uid'] . '=' . $this->ldap_escape(htmlspecialchars_decode($username)) . ')';
+		$filter = '(' . $this->config['ldap_uid'] . '=' . $this->ldap_escape(htmlspecialchars_decode($username, ENT_COMPAT)) . ')';
 		if ($this->config['ldap_user_filter'])
 		{
 			$_filter = ($this->config['ldap_user_filter'][0] == '(' && substr($this->config['ldap_user_filter'], -1) == ')') ? $this->config['ldap_user_filter'] : "({$this->config['ldap_user_filter']})";

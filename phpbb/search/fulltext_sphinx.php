@@ -18,7 +18,7 @@ define('SPHINX_CONNECT_RETRIES', 3);
 define('SPHINX_CONNECT_WAIT_TIME', 300);
 
 /**
-* Fulltext search based on the sphinx search deamon
+* Fulltext search based on the sphinx search daemon
 */
 class fulltext_sphinx
 {
@@ -129,7 +129,7 @@ class fulltext_sphinx
 	 * @param string $phpEx PHP file extension
 	 * @param \phpbb\auth\auth $auth Auth object
 	 * @param \phpbb\config\config $config Config object
-	 * @param \phpbb\db\driver\driver_interface Database object
+	 * @param \phpbb\db\driver\driver_interface $db Database object
 	 * @param \phpbb\user $user User object
 	 * @param \phpbb\event\dispatcher_interface	$phpbb_dispatcher	Event dispatcher object
 	 */
@@ -210,11 +210,11 @@ class fulltext_sphinx
 	/**
 	* Checks permissions and paths, if everything is correct it generates the config file
 	*
-	* @return string|bool Language key of the error/incompatiblity encountered, or false if successful
+	* @return string|bool Language key of the error/incompatibility encountered, or false if successful
 	*/
 	public function init()
 	{
-		if ($this->db->get_sql_layer() != 'mysql' && $this->db->get_sql_layer() != 'mysql4' && $this->db->get_sql_layer() != 'mysqli' && $this->db->get_sql_layer() != 'postgres')
+		if ($this->db->get_sql_layer() != 'mysqli' && $this->db->get_sql_layer() != 'postgres')
 		{
 			return $this->user->lang['FULLTEXT_SPHINX_WRONG_DATABASE'];
 		}
@@ -233,7 +233,7 @@ class fulltext_sphinx
 	protected function config_generate()
 	{
 		// Check if Database is supported by Sphinx
-		if ($this->db->get_sql_layer() =='mysql' || $this->db->get_sql_layer() == 'mysql4' || $this->db->get_sql_layer() == 'mysqli')
+		if ($this->db->get_sql_layer() == 'mysqli')
 		{
 			$this->dbtype = 'mysql';
 		}
@@ -1045,7 +1045,7 @@ class fulltext_sphinx
 		</dl>
 		<dl>
 			<dt><label for="fulltext_sphinx_config_file">' . $this->user->lang['FULLTEXT_SPHINX_CONFIG_FILE'] . $this->user->lang['COLON'] . '</label><br /><span>' . $this->user->lang['FULLTEXT_SPHINX_CONFIG_FILE_EXPLAIN'] . '</span></dt>
-			<dd>' . (($this->config_generate()) ? '<textarea readonly="readonly" rows="6" id="sphinx_config_data">' . htmlspecialchars($this->config_file_data) . '</textarea>' : $this->config_file_data) . '</dd>
+			<dd>' . (($this->config_generate()) ? '<textarea readonly="readonly" rows="6" id="sphinx_config_data">' . htmlspecialchars($this->config_file_data, ENT_COMPAT) . '</textarea>' : $this->config_file_data) . '</dd>
 		<dl>
 		';
 

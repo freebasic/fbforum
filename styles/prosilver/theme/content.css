@@ -151,7 +151,7 @@ dl.row-item dt {
 }
 
 dl.row-item dt .list-inner {
-	padding-left: 52px;					/* Space for folder icon */
+	padding-left: 52px;			/* Space for folder icon */
 }
 
 dl.row-item dt, dl.row-item dd {
@@ -162,7 +162,7 @@ dl.row-item dt a {
 	display: inline;
 }
 
-dl a.row-item-link {						/* topic row icon links */
+dl a.row-item-link {				/* topic row icon links */
 	display: block;
 	width: 30px;
 	height: 30px;
@@ -361,6 +361,17 @@ dd.option {
 	line-height: 1.4em;
 }
 
+.agreement {
+	font-size: 12px;
+	line-height: 17px;
+	margin-bottom: 10px;
+}
+
+.agreement-text {
+	line-height: 17px;
+	margin-bottom: 10px;
+}
+
 dl.faq {
 	font-family: "Lucida Grande", Verdana, Helvetica, Arial, sans-serif;
 	font-size: 1.1em;
@@ -484,7 +495,7 @@ blockquote cite:before, .uncited:before {
 	padding-right: 5px;
 }
 
-blockquote cite > div {
+blockquote cite > span {
 	float: right;
 	font-weight: normal;
 }
@@ -553,6 +564,7 @@ blockquote .codebox {
 	clear: left;
 	border-top: 1px solid transparent;
 	overflow-x: auto;
+	overflow-y: hidden;
 }
 
 .attachbox dd dd {
@@ -565,8 +577,7 @@ blockquote .codebox {
 	clear: left;
 }
 
-.attachbox p.stats
-{
+.attachbox p.stats {
 	line-height: 110%;
 	font-weight: normal;
 	clear: left;
@@ -579,7 +590,6 @@ blockquote .codebox {
 
 .attach-image img {
 	border: 1px solid transparent;
-/*	cursor: move; */
 	cursor: default;
 }
 

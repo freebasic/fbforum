@@ -420,7 +420,7 @@ class filespec
 			return false;
 		}
 
-		$upload_mode = ($this->php_ini->getBool('open_basedir') || $this->php_ini->getBool('safe_mode')) ? 'move' : 'copy';
+		$upload_mode = ($this->php_ini->getBool('open_basedir')) ? 'move' : 'copy';
 		$upload_mode = ($this->local) ? 'local' : $upload_mode;
 		$this->destination_file = $this->destination_path . '/' . utf8_basename($this->realname);
 
@@ -476,7 +476,10 @@ class filespec
 			}
 
 			// Remove temporary filename
-			@unlink($this->filename);
+			if (file_exists($this->filename))
+			{
+				@unlink($this->filename);
+			}
 
 			if (count($this->error))
 			{

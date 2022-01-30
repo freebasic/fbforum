@@ -2424,6 +2424,15 @@ dd.option {
   margin-bottom: 1em;
   line-height: 1.4; }
 
+.agreement {
+  font-size: 12px;
+  line-height: 17px;
+  margin-bottom: 10px; }
+
+.agreement-text {
+  line-height: 17px;
+  margin-bottom: 10px; }
+
 dl.faq, .content dl.faq {
   font-family: "Lucida Grande", "Trebuchet MS", Verdana, Helvetica, Arial, sans-serif;
   font-size: 13px;
@@ -2535,7 +2544,7 @@ blockquote cite {
 blockquote cite:before, .uncited:before {
   padding-right: 5px; }
 
-blockquote cite > div {
+blockquote cite > span {
   float: right;
   font-weight: normal; }
 
@@ -2597,7 +2606,8 @@ blockquote .codebox {
   padding-top: 4px;
   clear: left;
   border-top: 1px solid transparent;
-  overflow-x: auto; }
+  overflow-x: auto;
+  overflow-y: hidden; }
 
 .attachbox dd dd {
   border: none; }
@@ -3746,7 +3756,7 @@ input.button3 {
   background-image: none;
   font-variant: small-caps; }
 
-input[type="button"], input[type="submit"], input[type="reset"], input[type="checkbox"], input[type="radio"] {
+input[type="button"], input[type="submit"], input[type="reset"], input[type="checkbox"], input[type="radio"], .search-results li {
   cursor: pointer; }
 
 a.button2, input.button2, input.button3 {
@@ -4086,7 +4096,7 @@ input.button1:focus, input.button2:focus, input.button3:focus {
     margin-left: -5px;
     margin-right: -5px; }
 
-  .cp-main .forabg, .cp-main .forumdb, .cp-main .post, .cp-main .panel {
+  .cp-main .forabg, .cp-main .forumbg, .cp-main .post, .cp-main .panel {
     border-radius: 0; }
 
   .navbar.tabbed .nav-tabs, .navbar.tabbed .nav-tabs .tab {
@@ -4235,7 +4245,7 @@ input.button1:focus, input.button2:focus, input.button3:focus {
     float: none; }
 
   fieldset dd, fieldset.fields1 dd, fieldset.fields2 dd {
-    margin-left: 0px; }
+    margin-left: 0; }
 
   textarea, dd textarea, .message-box textarea {
     width: 100%;
@@ -4334,8 +4344,7 @@ input.button1:focus, input.button2:focus, input.button3:focus {
     width: auto;
     border-width: 0 0 1px 0;
     padding-bottom: 5px;
-    margin: 0;
-    margin-bottom: 5px;
+    margin: 0 0 5px 0;
     min-height: 40px;
     overflow: hidden;
     z-index: auto !important; }
@@ -4435,12 +4444,12 @@ input.button1:focus, input.button2:focus, input.button3:focus {
 
   .attach-comment dfn {
     width: 100%; } }
-@media (min-width: 700px) {
+@media (min-width: 701px) {
   .postbody {
-    width: 70%; } }
-@media (min-width: 850px) {
-  .postbody {
-    width: 76%; } }
+    width: calc(100% - 150px - 1px - 16px); }
+
+  .postprofile {
+    width: 150px; } }
 @media (min-width: 701px) and (max-width: 950px) {
   ul.topiclist dt {
     margin-right: -410px; }
@@ -4572,6 +4581,7 @@ hr {
 .post:target .content {
   color: #000; }
 
+.post h3 a.first-unread,
 .post:target h3 a {
   color: #000; }
 
@@ -5115,9 +5125,6 @@ dd.profile-warnings {
 .phpbb_facebook-icon {
   background-position: -119px 0; }
 
-.phpbb_googleplus-icon {
-  background-position: -140px 0; }
-
 .phpbb_skype-icon {
   background-position: -161px 0; }
 
@@ -5644,16 +5651,16 @@ ul.linklist li.responsive-menu a.responsive-menu-link:hover:before, ul.linklist 
 -------------------------------------------------------------- */
 /* Global module setup
 --------------------------------*/
-/* Renamed version of .fa class for agnostic useage of icon fonts.
+/* Renamed version of .fa class for agnostic usage of icon fonts.
  * Just change the name of the font after the 14/1 to the name of
  * the font you wish to use.
  */
 .icon, .button .icon, blockquote cite:before, .uncited:before {
   display: inline-block;
+  font-family: FontAwesome;
   font-weight: normal;
   font-style: normal;
   font-variant: normal;
-  font-family: FontAwesome;
   font-size: 14px;
   line-height: 1;
   text-rendering: auto;

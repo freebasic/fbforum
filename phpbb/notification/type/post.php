@@ -129,18 +129,6 @@ class post extends \phpbb\notification\type\base
 		}
 		$this->db->sql_freeresult($result);
 
-		$sql = 'SELECT user_id
-			FROM ' . FORUMS_WATCH_TABLE . '
-			WHERE forum_id = ' . (int) $post['forum_id'] . '
-				AND notify_status = ' . NOTIFY_YES . '
-				AND user_id <> ' . (int) $post['poster_id'];
-		$result = $this->db->sql_query($sql);
-		while ($row = $this->db->sql_fetchrow($result))
-		{
-			$users[] = (int) $row['user_id'];
-		}
-		$this->db->sql_freeresult($result);
-
 		$notify_users = $this->get_authorised_recipients($users, $post['forum_id'], $options, true);
 
 		if (empty($notify_users))
@@ -274,16 +262,16 @@ class post extends \phpbb\notification\type\base
 		}
 
 		return array(
-			'AUTHOR_NAME'				=> htmlspecialchars_decode($username),
-			'POST_SUBJECT'				=> htmlspecialchars_decode(censor_text($this->get_data('post_subject'))),
-			'TOPIC_TITLE'				=> htmlspecialchars_decode(censor_text($this->get_data('topic_title'))),
+			'AUTHOR_NAME'				=> htmlspecialchars_decode($username, ENT_COMPAT),
+			'POST_SUBJECT'				=> htmlspecialchars_decode(censor_text($this->get_data('post_subject')), ENT_COMPAT),
+			'TOPIC_TITLE'				=> htmlspecialchars_decode(censor_text($this->get_data('topic_title')), ENT_COMPAT),
 
 			'U_VIEW_POST'				=> generate_board_url() . "/viewtopic.{$this->php_ext}?p={$this->item_id}#p{$this->item_id}",
-			'U_NEWEST_POST'				=> generate_board_url() . "/viewtopic.{$this->php_ext}?f={$this->get_data('forum_id')}&t={$this->item_parent_id}&e=1&view=unread#unread",
-			'U_TOPIC'					=> generate_board_url() . "/viewtopic.{$this->php_ext}?f={$this->get_data('forum_id')}&t={$this->item_parent_id}",
-			'U_VIEW_TOPIC'				=> generate_board_url() . "/viewtopic.{$this->php_ext}?f={$this->get_data('forum_id')}&t={$this->item_parent_id}",
+			'U_NEWEST_POST'				=> generate_board_url() . "/viewtopic.{$this->php_ext}?t={$this->item_parent_id}&e=1&view=unread#unread",
+			'U_TOPIC'					=> generate_board_url() . "/viewtopic.{$this->php_ext}?t={$this->item_parent_id}",
+			'U_VIEW_TOPIC'				=> generate_board_url() . "/viewtopic.{$this->php_ext}?t={$this->item_parent_id}",
 			'U_FORUM'					=> generate_board_url() . "/viewforum.{$this->php_ext}?f={$this->get_data('forum_id')}",
-			'U_STOP_WATCHING_TOPIC'		=> generate_board_url() . "/viewtopic.{$this->php_ext}?uid={$this->user_id}&f={$this->get_data('forum_id')}&t={$this->item_parent_id}&unwatch=topic",
+			'U_STOP_WATCHING_TOPIC'		=> generate_board_url() . "/viewtopic.{$this->php_ext}?uid={$this->user_id}&t={$this->item_parent_id}&unwatch=topic",
 		);
 	}
 
@@ -352,7 +340,7 @@ class post extends \phpbb\notification\type\base
 	*
 	* @param array $post Post data from submit_post
 	* @param array $notify_users Notify users list
-	* 		Formated from find_users_for_notification()
+	* 		Formatted from find_users_for_notification()
 	* @return array Whatever you want to send to create_insert_array().
 	*/
 	public function pre_create_insert_array($post, $notify_users)
@@ -457,6 +445,12 @@ class post extends \phpbb\notification\type\base
 		}
 
 		$data_array = array_merge(array(
+			'poster_id'		=> $post['poster_id'],
+			'topic_title'	=> $post['topic_title'],
+			'post_subject'	=> $post['post_subject'],
+			'post_username'	=> $post['post_username'],
+			'forum_id'		=> $post['forum_id'],
+			'forum_name'	=> $post['forum_name'],
 			'post_time'		=> $post['post_time'],
 			'post_id'		=> $post['post_id'],
 			'topic_id'		=> $post['topic_id']

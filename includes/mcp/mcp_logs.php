@@ -45,7 +45,7 @@ class mcp_logs
 
 		if (is_array($action))
 		{
-			list($action, ) = each($action);
+			$action = key($action);
 		}
 		else
 		{
@@ -179,7 +179,7 @@ class mcp_logs
 		$sql_sort = $sort_by_sql[$sort_key] . ' ' . (($sort_dir == 'd') ? 'DESC' : 'ASC');
 
 		$keywords = $request->variable('keywords', '', true);
-		$keywords_param = !empty($keywords) ? '&amp;keywords=' . urlencode(htmlspecialchars_decode($keywords)) : '';
+		$keywords_param = !empty($keywords) ? '&amp;keywords=' . urlencode(htmlspecialchars_decode($keywords, ENT_COMPAT)) : '';
 
 		// Grab log data
 		$log_data = array();

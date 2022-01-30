@@ -220,7 +220,7 @@ else
 		{
 			phpbb_download_handle_forum_auth($db, $auth, $attachment['topic_id']);
 
-			$sql = 'SELECT forum_id, post_visibility
+			$sql = 'SELECT forum_id, poster_id, post_visibility
 				FROM ' . POSTS_TABLE . '
 				WHERE post_id = ' . (int) $attachment['post_msg_id'];
 			$result = $db->sql_query($sql);
@@ -253,11 +253,6 @@ else
 	$display_cat = $extensions[$attachment['extension']]['display_cat'];
 
 	if (($display_cat == ATTACHMENT_CATEGORY_IMAGE || $display_cat == ATTACHMENT_CATEGORY_THUMB) && !$user->optionget('viewimg'))
-	{
-		$display_cat = ATTACHMENT_CATEGORY_NONE;
-	}
-
-	if ($display_cat == ATTACHMENT_CATEGORY_FLASH && !$user->optionget('viewflash'))
 	{
 		$display_cat = ATTACHMENT_CATEGORY_NONE;
 	}

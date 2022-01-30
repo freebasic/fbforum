@@ -46,6 +46,7 @@ class bbcode_firstpass extends bbcode
 	var $message = '';
 	var $warn_msg = array();
 	var $parsed_items = array();
+	var $mode;
 
 	/**
 	* Parse BBCode
@@ -505,7 +506,7 @@ class bbcode_firstpass extends bbcode
 				}
 
 				// Because highlight_string is specialcharing the text (but we already did this before), we have to reverse this in order to get correct results
-				$code = htmlspecialchars_decode($code);
+				$code = htmlspecialchars_decode($code, ENT_COMPAT);
 				$code = highlight_string($code, true);
 
 				$str_from = array('<span style="color: ', '<font color="syntax', '</font>', '<code>', '</code>','[', ']', '.', ':');
@@ -1101,8 +1102,6 @@ class parse_message extends bbcode_firstpass
 	var $allow_flash_bbcode = true;
 	var $allow_quote_bbcode = true;
 	var $allow_url_bbcode = true;
-
-	var $mode;
 
 	/**
 	* The plupload object used for dealing with attachments
