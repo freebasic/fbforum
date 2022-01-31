@@ -10,6 +10,9 @@
 
 namespace arty\scss\acp;
 
+require_once( __DIR__ . '/scssphp/scss.inc.php' );
+use ScssPhp\ScssPhp\Compiler;
+
 class scss_module
 {
 	/** @var string */
@@ -180,6 +183,7 @@ class scss_module
 			'files'	=> array(),
 		);
 
+/*
 		foreach ($scss as $file)
 		{
 			if ($file == 'stylesheet.scss')
@@ -188,7 +192,14 @@ class scss_module
 			}
 			$post['files'][$file] = @file_get_contents($path . $file);
 		}
-
+*/
+		
+		$compiler = new Compiler();
+		$compiler->setOutputStyle = \ScssPhp\ScssPhp\OutputStyle::EXPANDED;
+		$cssResult = $compiler->compileString( $data, $path . 'stylesheet.scss' )->getCss();
+		$result = json_encode( array('css' => $cssResult ) );
+		
+	/*
 		// Send data to server
 		$url = 'http://phpbb31.artodia.com/scss.php';
 
@@ -202,6 +213,7 @@ class scss_module
 			'Content-Length: ' . strlen($encoded))
 		);
 		$result = curl_exec($ch);
+	*/
 
 		if (!strlen($result))
 		{
@@ -323,10 +335,12 @@ class scss_module
 	 */
 	protected function assert_required_modules()
 	{
+/*
 		if (!function_exists('curl_init'))
 		{
 			trigger_error($this->user->lang['ACP_SCSS_MISSING_CURL'] . adm_back_link($this->u_action), E_USER_WARNING);
 		}
+*/
 		if (!function_exists('json_encode'))
 		{
 			trigger_error($this->user->lang['ACP_SCSS_MISSING_JSON'] . adm_back_link($this->u_action), E_USER_WARNING);
