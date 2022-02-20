@@ -304,7 +304,11 @@ class fulltext_native extends \phpbb\search\base
 		{
 			$words = array();
 
-			preg_match_all('#([^\\s+\\-|()]+)(?:$|[\\s+\\-|()])#u', $keywords, $words);
+			// fb.net - allow underscores in words
+			// original: preg_match_all('#([^\\s+\\-|()]+)(?:$|[\\s+\\-|()])#u', $keywords, $words);
+
+			preg_match_all('#([^\\s+\\-|()\_]+)(?:$|[\\s+\\-|()])#u', $keywords, $words);
+
 			if (count($words[1]))
 			{
 				$keywords = '(' . implode('|', $words[1]) . ')';
@@ -1343,9 +1347,9 @@ class fulltext_native extends \phpbb\search\base
 		/**
 		* Taken from the original code
 		*/
+		// fb.net - allow code to be indexed by commenting out the rule
 		// Do not index code
-		$match[] = '#\[code(?:=.*?)?(\:?[0-9a-z]{5,})\].*?\[\/code(\:?[0-9a-z]{5,})\]#is';
-		// BBcode
+		// original: $match[] = '#\[code(?:=.*?)?(\:?[0-9a-z]{5,})\].*?\[\/code(\:?[0-9a-z]{5,})\]#is';
 		$match[] = '#\[\/?[a-z0-9\*\+\-]+(?:=.*?)?(?::[a-z])?(\:?[0-9a-z]{5,})\]#';
 
 		$min = $this->word_length['min'];
@@ -1847,14 +1851,20 @@ class fulltext_native extends \phpbb\search\base
 		*
 		* @todo in theory, the third one is already taken care of during normalization and those chars should have been replaced by Unicode replacement chars
 		*/
+
 		$sb_match	= "ISTCPAMELRDOJBNHFGVWUQKYXZ\r\n\t!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~\x00\x01\x02\x03\x04\x05\x06\x07\x08\x0B\x0C\x0E\x0F\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1A\x1B\x1C\x1D\x1E\x1F\xC0\xC1\xF5\xF6\xF7\xF8\xF9\xFA\xFB\xFC\xFD\xFE\xFF";
-		$sb_replace	= 'istcpamelrdojbnhfgvwuqkyxz                                                                              ';
+
+		// fb.net - allow underscores in words
+		// original: $sb_replace	= 'istcpamelrdojbnhfgvwuqkyxz                                                                              ';
+		$sb_replace	= 'istcpamelrdojbnhfgvwuqkyxz                             _                                                ';
 
 		/**
 		* This is the list of legal ASCII chars, it is automatically extended
 		* with ASCII chars from $allowed_chars
 		*/
-		$legal_ascii = ' eaisntroludcpmghbfvq10xy2j9kw354867z';
+		// fb.net - allow underscores in words
+		// original: $legal_ascii = ' eaisntroludcpmghbfvq10xy2j9kw354867z';
+		$legal_ascii = ' eaisntroludcpmghbfvq10xy2j9kw354867z_';
 
 		/**
 		* Prepare an array containing the extra chars to allow
