@@ -37,7 +37,7 @@
 .clearfix:after,
 .container:after,
 .container-fluid:after,
-.row:after { clear: both }
+.row:after { clear: both; }
 
 .center-block {
 	display: block;
@@ -45,11 +45,11 @@
 	margin-right: auto;
 }
 
-.pull-right { float: right !important }
-.pull-left { float: left !important }
-.hide { display: none !important }
-.show { display: block !important }
-.invisible { visibility: hidden }
+.pull-right { float: right !important; }
+.pull-left { float: left !important; }
+.hide { display: none !important; }
+.show { display: block !important; }
+.invisible { visibility: hidden; }
 
 .text-hide {
 	font: 0/0 a;
@@ -63,4 +63,4 @@
 	display: none ;
 }
 
-.affix { position: fixed }
+.affix { position: fixed; }
