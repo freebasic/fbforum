@@ -1,0 +1,36 @@
+{
+    "name": "phpbbservices/scsscompiler",
+    "type": "phpbb-extension",
+    "description": "Compiles phpBB SCSS-based styles",
+    "homepage": "https://www.phpbbservices.com/my-software/scss-compiler/",
+    "version": "1.0.6",
+    "time": "2022-09-07",
+    "license": "GPL-2.0-only",
+    "authors": [
+        {
+            "name": "MarkDHamill",
+            "email": "mark@phpbbservices.com",
+            "homepage": "https://www.phpbbservices.com/",
+            "role": "Developer"
+        }
+    ],
+    "require": {
+        "php": ">=7.1.3",
+        "composer/installers": "~1.0.0",
+        "scssphp/scssphp": "^1.8.1",
+        "phpbb/phpbb": ">=3.3.0,<3.4.0@dev"
+    },
+    "extra": {
+        "display-name": "SCSS Compiler",
+        "soft-require": {
+            "phpbb/phpbb": ">=3.3.0,<3.4.0@dev",
+            "scssphp/scssphp": "*"
+        },
+        "version-check": {
+            "host": "www.phpbb.com",
+            "directory": "/customise/db/extension/scss_theme_compiler",
+            "filename": "version_check",
+            "ssl": true
+        }
+    }
+}

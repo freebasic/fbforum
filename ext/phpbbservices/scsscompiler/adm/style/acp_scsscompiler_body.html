@@ -1,0 +1,56 @@
+{% include 'overall_header.html' %}
+
+<h1>{{ lang('ACP_SCSSCOMPILER_TITLE') }}</h1>
+
+{% if S_ERROR %}
+	<div class="errorbox">
+		<h3>{{ lang('WARNING') }}</h3>
+		<p>{{ ERROR_MSG }}</p>
+	</div>
+{% endif %}
+
+<form id="phpbbservices_scsscompiler_acp" name="phpbbservices_scsscompiler_acp" method="post" action="{{ U_ACTION }}">
+	<p>{{ lang('ACP_SCSSCOMPILER_EXPLAIN') }}</p>
+
+	<fieldset class="quick">
+		<p class="small"><a href="#" onclick="marklist('phpbbservices_scsscompiler_acp', 's-', true);">{{ lang('MARK_ALL') }}</a> &bull; <a href="#" onclick="marklist('phpbbservices_scsscompiler_acp', 's-', false);">{{ lang('UNMARK_ALL') }}</a></p>
+	</fieldset>
+	<fieldset>
+		<table>
+			<tr>
+				<th>{{ lang('ACP_SCSSCOMPILER_STYLE_INFO') }}</th>
+				<th class="center">{{ lang('ACP_SCSSCOMPILER_OVERRIDE') }}</th>
+				<th>{{ lang('ACP_SCSSCOMPILER_SCSS_FILE') }}</th>
+				<th>{{ lang('ACP_SCSSCOMPILER_CSS_FILE') }}</th>
+				<th>{{ lang('ACP_SCSSCOMPILER_LAST_MODIFIED') }}</th>
+				<th class="center">{{ lang('ACP_SCSSCOMPILER_RECOMPILE_STYLE') }}</th>
+			</tr>
+			{% if styles %}
+			{% for style in styles %}
+			<tr class="{% if style.S_ROW_COUNT is even %}row1{% else %}row2{% endif %}{% if style.S_ACP_SCSSCOMPILER_INACTIVE %} row-inactive{% endif %}">
+				<td>{% if style.S_ACP_SCSSCOMPILER_RECOMPILE %}<span style="font-weight: bold;">{% endif %}{{ style.ACP_SCSSCOMPILER_NAME }}{% if style.S_ACP_SCSSCOMPILER_RECOMPILE %}</span>{% endif %}</td>
+				<td class="center">{{ style.ACP_SCSSCOMPILER_YES_NO }}</td>
+				<td><select id="scss-{{ style.ACP_SCSSCOMPILER_ID }}" name="scss-{{ style.ACP_SCSSCOMPILER_ID }}">{{ style.ACP_SCSSCOMPILER_SCSS_SELECT }}</select></td>
+				<td><select id="css-{{ style.ACP_SCSSCOMPILER_ID }}" name="css-{{ style.ACP_SCSSCOMPILER_ID }}">{{ style.ACP_SCSSCOMPILER_CSS_SELECT }}</select></td>
+				<td>{{ style.ACP_SCSSCOMPILER_CSS_TIME }}</td>
+				<td class="center"><input type="checkbox" name="s-{{ style.ACP_SCSSCOMPILER_ID }}"></td>
+			</tr>
+			{% endfor %}
+			{% else %}
+			<tr>
+				<td colspan="6" class="center">{{ lang('ACP_SCSSCOMPILER_NO_SCSS_STYLES') }}</td>
+			</tr>
+			{% endif %}
+		</table>
+	</fieldset>
+	<fieldset class="quick">
+		<p class="small"><a href="#" onclick="marklist('phpbbservices_scsscompiler_acp', 's-', true);">{{ lang('MARK_ALL') }}</a> &bull; <a href="#" onclick="marklist('phpbbservices_scsscompiler_acp', 's-', false);">{{ lang('UNMARK_ALL') }}</a></p>
+	</fieldset>
+	<fieldset class="submit-buttons">
+		<input class="button1" type="submit" id="submit" name="submit" value="{{ lang('ACP_SCSSCOMPILER_RECOMPILE_CHECKED') }}" />&nbsp;
+		{{ S_FORM_TOKEN }}
+	</fieldset>
+
+</form>
+
+{% include 'overall_footer.html' %}
