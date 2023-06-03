@@ -1,0 +1,19 @@
+services:
+    phpbbservices.scsscompiler.controller.acp:
+        class: phpbbservices\scsscompiler\controller\acp_controller
+        arguments:
+            - '@config'
+            - '@language'
+            - '@log'
+            - '@request'
+            - '@template'
+            - '@user'
+            - '@dbal.conn'
+            - '%core.root_path%'
+            - '@filesystem'
+    phpbbservices.scsscompiler.listener:
+        class: phpbbservices\scsscompiler\event\main_listener
+        arguments:
+            - '@language'
+        tags:
+            - { name: event.listener }
