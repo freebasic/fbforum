@@ -813,20 +813,42 @@ function posting_gen_inline_attachments(&$attachment_data)
 }
 
 /**
-* Generate inline attachment entry
-*/
-function posting_gen_attachment_entry($attachment_data, &$filename_data, $show_attach_box = true)
+ * Generate inline attachment entry
+ *
+ * @param array		$attachment_data	The attachment data
+ * @param string	$filename_data		The filename data (filecomment)
+ * @param bool		$show_attach_box	Whether to show the attach box
+ * @param mixed		$forum_id			The forum id to check or false if private message
+ * @return int
+ */
+function posting_gen_attachment_entry($attachment_data, &$filename_data, $show_attach_box = true, $forum_id = false)
 {
-	global $template, $config, $phpbb_root_path, $phpEx, $user, $phpbb_dispatcher;
+	global $template, $cache, $config, $phpbb_root_path, $phpEx, $user, $phpbb_dispatcher;
+
+	$allowed_attachments = array_keys($cache->obtain_attach_extensions($forum_id)['_allowed_']);
 
 	// Some default template variables
-	$template->assign_vars(array(
+	$default_vars = [
 		'S_SHOW_ATTACH_BOX'				=> $show_attach_box,
 		'S_HAS_ATTACHMENTS'				=> count($attachment_data),
 		'FILESIZE'						=> $config['max_filesize'],
 		'FILE_COMMENT'					=> (isset($filename_data['filecomment'])) ? $filename_data['filecomment'] : '',
 		'MAX_ATTACHMENT_FILESIZE'		=> $config['max_filesize'] > 0 ? $user->lang('MAX_ATTACHMENT_FILESIZE', get_formatted_filesize($config['max_filesize'])) : '',
-	));
+		'ALLOWED_ATTACHMENTS'			=> !empty($allowed_attachments) ? '.' . implode(',.', $allowed_attachments) : '',
+	];
+
+	/**
+	 * Modify default attachments template vars
+	 *
+	 * @event core.modify_default_attachments_template_vars
+	 * @var	array	allowed_attachments		Array containing allowed attachments data
+	 * @var	array	default_vars			Array containing default attachments template vars
+	 * @since 3.3.6-RC1
+	 */
+	$vars = ['allowed_attachments', 'default_vars'];
+	extract($phpbb_dispatcher->trigger_event('core.modify_default_attachments_template_vars', compact($vars)));
+
+	$template->assign_vars($default_vars);
 
 	if (count($attachment_data))
 	{
@@ -1231,11 +1253,11 @@ function topic_review($topic_id, $forum_id, $mode = 'topic_review', $cur_post_id
 			'POST_AUTHOR'			=> get_username_string('username', $poster_id, $row['username'], $row['user_colour'], $row['post_username']),
 			'U_POST_AUTHOR'			=> get_username_string('profile', $poster_id, $row['username'], $row['user_colour'], $row['post_username']),
 
-			'S_HAS_ATTACHMENTS'	=> (!empty($attachments[$row['post_id']])) ? true : false,
-			'S_FRIEND'			=> ($row['friend']) ? true : false,
-			'S_IGNORE_POST'		=> ($row['foe']) ? true : false,
-			'L_IGNORE_POST'		=> ($row['foe']) ? sprintf($user->lang['POST_BY_FOE'], get_username_string('full', $poster_id, $row['username'], $row['user_colour'], $row['post_username']), "<a href=\"{$u_show_post}\" onclick=\"phpbb.toggleDisplay('{$post_anchor}', 1); return false;\">", '</a>') : '',
-			'S_POST_DELETED'	=> ($row['post_visibility'] == ITEM_DELETED) ? true : false,
+			'S_HAS_ATTACHMENTS'	=> !empty($attachments[$row['post_id']]),
+			'S_FRIEND'			=> (bool) $row['friend'],
+			'S_IGNORE_POST'		=> (bool) $row['foe'],
+			'L_IGNORE_POST'		=> $row['foe'] ? $user->lang('POST_BY_FOE', get_username_string('full', $poster_id, $row['username'], $row['user_colour'], $row['post_username']), "<a href=\"{$u_show_post}\" onclick=\"phpbb.toggleDisplay('{$post_anchor}', 1); return false;\">", '</a>') : '',
+			'S_POST_DELETED'	=> $row['post_visibility'] == ITEM_DELETED,
 			'L_DELETE_POST'		=> $l_deleted_message,
 
 			'POST_SUBJECT'		=> $post_subject,

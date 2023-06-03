@@ -265,7 +265,7 @@ class reset_password
 				$messenger->anti_abuse_headers($this->config, $this->user);
 
 				$messenger->assign_vars([
-						'USERNAME'			=> htmlspecialchars_decode($user_row['username'], ENT_COMPAT),
+						'USERNAME'			=> html_entity_decode($user_row['username'], ENT_COMPAT),
 						'U_RESET_PASSWORD'	=> generate_board_url(true) . $this->helper->route('phpbb_ucp_reset_password_controller', [
 							'u'		=> $user_row['user_id'],
 							'token'	=> $reset_token,
@@ -415,6 +415,7 @@ class reset_password
 							SET ' . $this->db->sql_build_array('UPDATE', $sql_ary) . '
 							WHERE user_id = ' . (int) $user_row['user_id'];
 				$this->db->sql_query($sql);
+				$this->user->reset_login_keys();
 				$this->log->add('user', $user_row['user_id'], $this->user->ip, 'LOG_USER_NEW_PASSWORD', false, [
 					'reportee_id' => $user_row['user_id'],
 					$user_row['username']
