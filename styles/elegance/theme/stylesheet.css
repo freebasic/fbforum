@@ -5109,34 +5109,34 @@ dl.faq dt, .content dl.faq dt {
   border-top-color: #e7e7e7;
 }
 blockquote {
-  background-color: #EBEADD;
-  border-color: #dedcc7;
+  background-color: #f0f0f0;
+  border-color: #dedede;
 }
 blockquote blockquote, blockquote .codebox, blockquote .attachbox {
-  background-color: #EFEED9;
+  background-color: #e8e8e8;
 }
 blockquote blockquote blockquote, blockquote blockquote .codebox, blockquote blockquote .attachbox {
-  background-color: #edecdb;
+  background-color: #ececec;
 }
 /*blockquote:before {
 	color: $muted-color;
 }*/
 .codebox {
   background-color: #FFFFFF;
-  border-color: #dedcc7;
+  border-color: #dedede;
 }
 .codebox p {
-  border-bottom-color: #e2e0cd;
+  border-bottom-color: #e3e3e3;
 }
 .codebox code {
   color: #34a042;
 }
 .attachbox {
-  background-color: #EBEADD;
-  border-color: #dedcc7;
+  background-color: #f0f0f0;
+  border-color: #dedede;
 }
 .attachbox dd {
-  border-top-color: #e2e0cd;
+  border-top-color: #e3e3e3;
 }
 .attachbox p {
   color: #666;
@@ -5148,7 +5148,7 @@ dl.file dd {
   color: #666;
 }
 dl.thumbnail img {
-  border-color: #e2e0cd;
+  border-color: #e3e3e3;
   background-color: #f4f4f4;
 }
 dl.thumbnail dd {
@@ -6358,4 +6358,7 @@ td, th {
 }
 .affix {
   position: fixed;
+}
+tt {
+  font-family: monospace;
 }

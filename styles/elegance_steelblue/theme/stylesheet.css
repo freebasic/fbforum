@@ -26,7 +26,7 @@ blockquote, q {
   quotes: none;
 }
 blockquote:before, blockquote:after, q:before, q:after {
-  content: "";
+  content: '';
   content: none;
 }
 table {
@@ -37,7 +37,7 @@ abbr {
   text-decoration: none;
 }
 .site-description:after, .navbar.secondary:after, .navbar .nav-tabs:after, ul.topiclist dl:after, .site-description:before, .navbar.secondary:before, .navbar .nav-tabs:before, ul.topiclist dl:before {
-  content: " ";
+  content: ' ';
   display: table;
   clear: both;
 }
@@ -367,7 +367,7 @@ ol ol ul, ol ul ul, ul ol ul, ul ul ul {
   position: relative;
 }
 .navbar .nav-tabs .nav-link.dropdown-toggle:before {
-  content: "";
+  content: '';
   font-family: FontAwesome;
   position: absolute;
   right: 12px;
@@ -388,7 +388,7 @@ ol ol ul, ol ul ul, ul ol ul, ul ul ul {
   font-style: inherit;
 }
 .navbar .nav-tabs .responsive-menu .nav-link:before, .navbar .nav-tabs .dropdown-visible .nav-link:before {
-  content: "";
+  content: '';
   font-family: FontAwesome;
   position: absolute;
   right: 12px;
@@ -519,7 +519,7 @@ ol ol ul, ol ul ul, ul ol ul, ul ul ul {
   font-family: FontAwesome;
 }
 .navbar .nav-tabs .responsive-menu .nav-link:after {
-  content: "";
+  content: '';
 }
 .navbar .nav-tabs .members .nav-link {
   padding-left: 32px;
@@ -530,7 +530,7 @@ ol ol ul, ol ul ul, ul ol ul, ul ul ul {
   padding-right: 32px;
 }
 .navbar .nav-tabs .members .nav-link:after {
-  content: "";
+  content: '';
 }
 @media (max-width: 550px) {
   .navbar .nav-tabs .members .nav-link {
@@ -542,26 +542,26 @@ ol ol ul, ol ul ul, ul ol ul, ul ul ul {
   padding-right: 32px;
 }
 .navbar .nav-tabs .forums .nav-link:after {
-  content: "";
+  content: '';
 }
 .navbar .nav-tabs .account .nav-link:after {
-  content: "";
+  content: '';
 }
 .navbar .nav-tabs .pm .nav-link:after {
-  content: "";
+  content: '';
 }
 .navbar .nav-tabs .notifications .nav-link:after {
-  content: "";
+  content: '';
   font-size: 13px;
 }
 .navbar .nav-tabs .mcp .nav-link:after {
-  content: "";
+  content: '';
 }
 .navbar .nav-tabs .acp .nav-link:after {
-  content: "";
+  content: '';
 }
 .navbar .nav-tabs .faq .nav-link:after {
-  content: "";
+  content: '';
 }
 @media (max-width: 550px) {
   .navbar .nav-tabs .faq, .navbar .nav-tabs .faq .nav-link {
@@ -569,20 +569,20 @@ ol ol ul, ol ul ul, ul ol ul, ul ul ul {
   }
 }
 .navbar .nav-tabs .logout .nav-link:after {
-  content: "";
+  content: '';
   margin-left: 1px;
 }
 .navbar .nav-tabs .login .nav-link:after {
-  content: "";
+  content: '';
 }
 .navbar .nav-tabs .register .nav-link:after {
-  content: "";
+  content: '';
 }
 .navbar .nav-tabs .boardrules .nav-link:after {
-  content: "";
+  content: '';
 }
 .navbar .nav-tabs .pages .nav-link:after {
-  content: "";
+  content: '';
 }
 .navbar .inner.static {
   position: fixed;
@@ -705,7 +705,7 @@ ol ol ul, ol ul ul, ul ol ul, ul ul ul {
   position: relative;
 }
 .panel.bg3:before, .panel.bg3:after {
-  content: "";
+  content: '';
   position: absolute;
   top: 0;
   width: 3px;
@@ -838,7 +838,7 @@ ul.linklist li.responsive-menu a.responsive-menu-link {
   text-decoration: none;
 }
 ul.linklist li.responsive-menu a.responsive-menu-link:before {
-  content: "";
+  content: '';
   font-family: FontAwesome;
   position: absolute;
   left: 0;
@@ -855,7 +855,7 @@ ul.linklist li.responsive-menu a.responsive-menu-link:before {
 }
 ul.linklist li.responsive-menu a.responsive-menu-link:hover:before {
   font-family: FontAwesome;
-  content: "";
+  content: '';
 }
 .hasjs ul.linklist.leftside, .hasjs ul.linklist.rightside {
   max-width: 48%;
@@ -900,7 +900,7 @@ ul.linklist.bulletin > li.no-bulletin:before {
   width: auto;
 }
 .header-avatar span:after {
-  content: "";
+  content: '';
   font-family: FontAwesome;
   display: inline-block;
   font-size: 7px;
@@ -1070,7 +1070,7 @@ ul.linklist.bulletin > li.no-bulletin:before {
   padding-right: 13px;
 }
 .breadcrumbs .crumb:before {
-  content: "";
+  content: '';
   font-family: FontAwesome;
   font-weight: normal;
   position: absolute;
@@ -1086,7 +1086,7 @@ ul.linklist.bulletin > li.no-bulletin:before {
 .rtl .breadcrumbs .crumb:before {
   left: auto;
   right: 1px;
-  content: "";
+  content: '';
 }
 .breadcrumbs .crumb:first-child {
   padding-left: 0;
@@ -1390,12 +1390,12 @@ fieldset.fields1 dl.pmlist dd.recipients {
   padding: 2px 0;
 }
 .rtl .pagination li.previous a:after {
-  content: "";
+  content: '';
   right: 1px;
   left: 3px;
 }
 .rtl .pagination li.next a:after {
-  content: "";
+  content: '';
   left: 1px;
   right: 3px;
 }
@@ -1442,7 +1442,7 @@ fieldset.fields1 dl.pmlist dd.recipients {
   position: relative;
 }
 .phpbb_alert .alert_close:before, .phpbb_alert .alert_close:after {
-  content: "";
+  content: '';
   font-family: FontAwesome;
   position: absolute;
   font-size: 18px;
@@ -1459,7 +1459,7 @@ fieldset.fields1 dl.pmlist dd.recipients {
   height: 24px;
 }
 .phpbb_alert .alert_close:before {
-  content: "";
+  content: '';
   font-size: 20px;
 }
 .phpbb_alert p {
@@ -1551,7 +1551,7 @@ p.post-notice {
   font-size: 12px;
 }
 p.post-notice:before {
-  content: "";
+  content: '';
   display: block;
   position: absolute;
   top: 50%;
@@ -1638,7 +1638,7 @@ form > p.post-notice strong {
 }
 .inner:after, ul.linklist:after, .action-bar:after, .notification_text:after, .tabs-container:after, .tabs > ul:after, .minitabs > ul:after, .postprofile .avatar-container:after {
   clear: both;
-  content: "";
+  content: '';
   display: block;
 }
 .emoji {
@@ -1720,7 +1720,7 @@ form > p.post-notice strong {
   padding: 0 5px;
 }
 .dropdown-extended .header:after {
-  content: "";
+  content: '';
   display: table;
   clear: both;
 }
@@ -1954,7 +1954,7 @@ a.arrow-up:after, a.arrow-down:after {
   pointer-events: none;
 }
 a.arrow-up:after {
-  content: "";
+  content: '';
   left: 0;
 }
 .rtl a.arrow-up:after {
@@ -1962,7 +1962,7 @@ a.arrow-up:after {
   right: 0;
 }
 a.arrow-down:after {
-  content: "";
+  content: '';
   right: 0;
   padding-top: 1px;
 }
@@ -2003,7 +2003,7 @@ a.feed-icon-forum {
   margin-top: 12px;
 }
 a.feed-icon-forum:after {
-  content: "";
+  content: '';
   position: absolute;
   left: 0;
   right: 0;
@@ -2074,7 +2074,7 @@ ul.topiclist li {
   opacity: 0.5;
 }
 .forabg ul.topiclist li.header .forum-toggle:after, .forumbg ul.topiclist li.header .forum-toggle:after {
-  content: "";
+  content: '';
   font-family: FontAwesome;
   position: absolute;
   top: 0;
@@ -2085,7 +2085,7 @@ ul.topiclist li {
   line-height: 16px;
 }
 .forabg ul.topiclist li.header .forum-toggle.toggled:after, .forumbg ul.topiclist li.header .forum-toggle.toggled:after {
-  content: "";
+  content: '';
 }
 .forabg ul.topiclist li.header .forum-toggle:hover, .forumbg ul.topiclist li.header .forum-toggle:hover {
   opacity: 1;
@@ -2377,7 +2377,7 @@ dd.option {
   max-width: 100%;
 }
 .forum-lastpost span:after {
-  content: "|";
+  content: '|';
   display: inline-block;
   text-align: center;
   width: 12px;
@@ -2458,7 +2458,7 @@ a.forumtitle + .forum-description.toggle, a.topictitle + .forum-description.togg
   margin-left: 160px;
 }
 .postprofile + .postbody > div:only-child:after {
-  content: " ";
+  content: ' ';
   display: table;
   clear: both;
 }
@@ -3132,7 +3132,7 @@ a.post {
   width: 16px;
 }
 .contact-icon:after {
-  content: "";
+  content: '';
   position: absolute;
   top: 0;
   left: 0;
@@ -3166,44 +3166,44 @@ a.post {
   clear: left;
 }
 .pm-icon:after {
-  content: "";
+  content: '';
 }
 .email-icon:after {
-  content: "";
+  content: '';
 }
 .jabber-icon:after {
-  content: "";
+  content: '';
   font-size: 16px;
 }
 .phpbb_icq-icon:after {
-  content: "";
+  content: '';
 }
 .phpbb_wlm-icon:after {
-  content: "";
+  content: '';
 }
 .phpbb_aol-icon:after {
-  content: "";
+  content: '';
 }
 .phpbb_website-icon:after {
-  content: "";
+  content: '';
 }
 .phpbb_youtube-icon:after {
-  content: "";
+  content: '';
 }
 .phpbb_facebook-icon:after {
-  content: "";
+  content: '';
 }
 .phpbb_googleplus-icon:after {
-  content: "";
+  content: '';
 }
 .phpbb_skype-icon:after {
-  content: "";
+  content: '';
 }
 .phpbb_twitter-icon:after {
-  content: "";
+  content: '';
 }
 .phpbb_yahoo-icon:after {
-  content: "";
+  content: '';
 }
 .post-buttons {
   float: right;
@@ -3455,7 +3455,7 @@ ul.cplist {
   text-decoration: none;
 }
 .responsive-tab > a.responsive-tab-link:before {
-  content: "";
+  content: '';
   font-family: FontAwesome;
   position: absolute;
   left: 10px;
@@ -3472,7 +3472,7 @@ ul.cplist {
 }
 .dropdown-visible.responsive-tab > a.responsive-tab-link:before, .responsive-tab > a.responsive-tab-link:hover:before {
   font-family: FontAwesome;
-  content: "";
+  content: '';
 }
 .tabs .dropdown, .minitabs .dropdown {
   top: 28px;
@@ -3601,7 +3601,7 @@ ol.def-rules li {
     margin: 0;
   }
   .cp-menu:after {
-    content: " ";
+    content: ' ';
     display: table;
     clear: both;
   }
@@ -4003,7 +4003,7 @@ input.button1:focus, input.button2:focus, input.button3:focus {
   background-image: none;
 }
 .icon-search-new:after, .icon-search-unanswered:after, .icon-search-unread:after, .icon-search-self:after, .icon-search:after, .icon-search-active:after, .icon-search-advanced:after, .icon-acp:after, .icon-bookmark:after, .icon-bump:after, .icon-contact:after, .icon-delete-cookies:after, .icon-download:after, .icon-faq:after, .icon-home:after, .icon-logout:after, .icon-login:after, .icon-mark:after, .icon-mcp:after, .icon-members:after, .icon-members:before, ul.linklist.bulletin > li.small-icon.icon-members:before, .icon-notification:after, .icon-pages:after, .icon-pm:after, .icon-print:after, .icon-profile:after, .icon-register:after, .icon-sendemail:after, .icon-subscribe:after, .icon-team:after, .icon-team:before, ul.linklist.bulletin > li.small-icon.icon-team:before, .icon-ucp:after, .icon-unsubscribe:after, .icon-new-posts:after, .icon-forums:after, .icon-chat:after, .icon-time:after, .icon-thanks:after, .icon-thanks_toplist:after {
-  content: "";
+  content: '';
   position: absolute;
   top: 50%;
   left: 0;
@@ -4027,51 +4027,51 @@ input.button1:focus, input.button2:focus, input.button3:focus {
   font-family: FontAwesome;
 }
 .icon-search-new:after, .icon-search-unanswered:after, .icon-search-unread:after, .icon-search-self:after, .icon-search:after, .icon-search-active:after, .icon-search-advanced:after {
-  content: "";
+  content: '';
 }
 .icon-acp:after {
-  content: "";
+  content: '';
 }
 .icon-bookmark:after {
-  content: "";
+  content: '';
   margin-left: -1px;
   margin-right: -1px;
 }
 .icon-bump:after {
-  content: "";
+  content: '';
 }
 .icon-contact:after {
-  content: "";
+  content: '';
 }
 .icon-delete-cookies:after {
-  content: "";
+  content: '';
 }
 .icon-download:after {
-  content: "";
+  content: '';
 }
 .icon-faq:after {
-  content: "";
+  content: '';
 }
 .icon-home:after {
-  content: "";
+  content: '';
 }
 .icon-home.breadcrumbs:after {
   text-align: left;
 }
 .icon-logout:after {
-  content: "";
+  content: '';
 }
 .icon-login:after {
-  content: "";
+  content: '';
 }
 .icon-mark:after {
-  content: "";
+  content: '';
 }
 .icon-mcp:after {
-  content: "";
+  content: '';
 }
 .icon-members:after, .icon-members:before, ul.linklist.bulletin > li.small-icon.icon-members:before {
-  content: "";
+  content: '';
 }
 .icon-members:before, ul.linklist.bulletin > li.small-icon.icon-members:before {
   display: block;
@@ -4082,37 +4082,37 @@ input.button1:focus, input.button2:focus, input.button3:focus {
   opacity: 0.7;
 }
 .icon-notification:after {
-  content: "";
+  content: '';
 }
 .icon-notification.non-zero:after {
-  content: "";
+  content: '';
 }
 .icon-pages:after {
-  content: "";
+  content: '';
 }
 .icon-pm:after {
-  content: "";
+  content: '';
 }
 .icon-pm.non-zero:after {
-  content: "";
+  content: '';
 }
 .icon-print:after {
-  content: "";
+  content: '';
 }
 .icon-profile:after {
-  content: "";
+  content: '';
 }
 .icon-register:after {
-  content: "";
+  content: '';
 }
 .icon-sendemail:after {
-  content: "";
+  content: '';
 }
 .icon-subscribe:after {
-  content: "";
+  content: '';
 }
 .icon-team:after, .icon-team:before, ul.linklist.bulletin > li.small-icon.icon-team:before {
-  content: "";
+  content: '';
 }
 .icon-team:before, ul.linklist.bulletin > li.small-icon.icon-team:before {
   display: block;
@@ -4121,37 +4121,37 @@ input.button1:focus, input.button2:focus, input.button3:focus {
   white-space: nowrap;
   padding-top: 1px;
   opacity: 0.7;
-  content: "";
+  content: '';
 }
 .icon-ucp:after {
-  content: "";
+  content: '';
 }
 .icon-unsubscribe:after {
-  content: "";
+  content: '';
 }
 .icon-new-posts:after {
-  content: "";
+  content: '';
 }
 .icon-forums:after {
-  content: "";
+  content: '';
 }
 .icon-chat:after {
-  content: "";
+  content: '';
 }
 .icon-time:after {
-  content: "";
+  content: '';
 }
 .icon-thanks {
   background-image: none !important;
 }
 .icon-thanks:after {
-  content: "";
+  content: '';
 }
 .icon-thanks_toplist {
   background-image: none !important;
 }
 .icon-thanks_toplist:after {
-  content: "";
+  content: '';
 }
 @media (max-width: 320px) {
   select, .inputbox {
@@ -4430,7 +4430,7 @@ input.button1:focus, input.button2:focus, input.button3:focus {
     display: inline-block !important;
   }
   table.responsive td > dfn:after {
-    content: ":";
+    content: ':';
     padding-right: 5px;
   }
   table.responsive span.rank-img {
@@ -4742,7 +4742,7 @@ hr {
   background-color: #b93329;
   background-image: -webkit-linear-gradient(top, rgba(255, 255, 255, 0.25) 0, rgba(255, 255, 255, 0) 100%);
   background-image: linear-gradient(to bottom, rgba(255, 255, 255, 0.25) 0, rgba(255, 255, 255, 0) 100%);
-  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr="#40FFFFFF", endColorstr="#00FFFFFF");
+  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#40FFFFFF', endColorstr='#00FFFFFF');
   box-shadow: 0 0 2px rgba(0, 0, 0, 0.1), 0 5px 5px -5px rgba(0, 0, 0, 0.2);
 }
 .navbar.secondary > ul > li:hover, .navbar.secondary > ul > li:hover:after, .navbar.secondary > ul > li:hover:before, .navbar.secondary > ul > li.dropdown-visible, .navbar.secondary > ul > li.dropdown-visible:after, .navbar.secondary > ul > li.dropdown-visible:before {
@@ -4755,7 +4755,7 @@ hr {
   background-color: #5d6578;
   background-image: -webkit-linear-gradient(top, rgba(255, 255, 255, 0.25) 0, rgba(255, 255, 255, 0) 100%);
   background-image: linear-gradient(to bottom, rgba(255, 255, 255, 0.25) 0, rgba(255, 255, 255, 0) 100%);
-  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr="#40FFFFFF", endColorstr="#00FFFFFF");
+  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#40FFFFFF', endColorstr='#00FFFFFF');
   box-shadow: 0 5px 5px -5px rgba(0, 0, 0, 0.2);
 }
 .navbar .nav-tabs .tab {
@@ -4766,14 +4766,14 @@ hr {
   background-color: #e4e4e4;
   background-image: -webkit-linear-gradient(top, rgba(255, 255, 255, 0.5) 0, rgba(255, 255, 255, 0) 100%);
   background-image: linear-gradient(to bottom, rgba(255, 255, 255, 0.5) 0, rgba(255, 255, 255, 0) 100%);
-  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr="#80FFFFFF", endColorstr="#00FFFFFF");
+  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#80FFFFFF', endColorstr='#00FFFFFF');
 }
 .navbar .nav-tabs .tab:hover, .navbar .nav-tabs .tab.dropdown-visible {
   color: #b93329;
   background-color: #e4e4e4;
   background-image: -webkit-linear-gradient(top, rgba(255, 255, 255, 0.5) 0, rgba(255, 255, 255, 0) 100%);
   background-image: linear-gradient(to bottom, rgba(255, 255, 255, 0.5) 0, rgba(255, 255, 255, 0) 100%);
-  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr="#80FFFFFF", endColorstr="#00FFFFFF");
+  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#80FFFFFF', endColorstr='#00FFFFFF');
 }
 .navbar .nav-tabs .tab > strong {
   color: #fff;
@@ -4849,7 +4849,7 @@ ul.navlinks {
   background-color: rgba(30, 30, 30, 0.8);
   background-image: -webkit-linear-gradient(top, rgba(255, 255, 255, 0.25) 0, rgba(255, 255, 255, 0) 100%);
   background-image: linear-gradient(to bottom, rgba(255, 255, 255, 0.25) 0, rgba(255, 255, 255, 0) 100%);
-  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr="#40FFFFFF", endColorstr="#00FFFFFF");
+  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#40FFFFFF', endColorstr='#00FFFFFF');
 }
 .forum-description.toggle a {
   color: inherit !important;
@@ -5011,15 +5011,15 @@ p.post-notice.deleted:before, p.post-notice.unapproved:before, p.post-notice.rep
   font-family: FontAwesome;
 }
 p.post-notice.deleted:before {
-  content: "";
+  content: '';
   color: #b93329;
 }
 p.post-notice.unapproved:before {
-  content: "";
+  content: '';
   color: #b93329;
 }
 p.post-notice.reported:before, p.post-notice.error:before {
-  content: "";
+  content: '';
   color: #b93329;
 }
 .topic-status.sticky {
@@ -5532,7 +5532,7 @@ dd.profile-warnings {
   background: -webkit-linear-gradient(top, #f4f4f4 0%, #f8f8f8 100%);
   background: linear-gradient(to bottom, #f4f4f4 0%, #f8f8f8 100%);
   box-shadow: 0 10px 10px -10px #f8f8f8;
-  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr="#FFF4F4F4", endColorstr="#FFF8F8F8", GradientType=0);
+  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#FFF4F4F4', endColorstr='#FFF8F8F8', GradientType=0);
   border-color: #f8f8f8;
   color: #2b2b2b;
 }
@@ -5984,11 +5984,11 @@ tt {
   height: 12px;
 }
 blockquote cite:before, .uncited:before {
-  content: "";
+  content: '';
   /* Font Awesome quote-left */
 }
 .rtl blockquote cite:before, .rtl .uncited:before {
-  content: "";
+  content: '';
   /* Font Awesome quote-right */
 }
 /*! normalize.css v3.0.3 | MIT License | github.com/necolas/normalize.css */
