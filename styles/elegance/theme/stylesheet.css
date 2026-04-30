@@ -48,7 +48,7 @@ html {
 body {
   font-family: Verdana, Helvetica, Arial, sans-serif;
   font-size: 11px;
-  line-height: 1.4;
+  line-height: 1.5;
   margin: 0;
   padding: 0 0 12px;
   word-wrap: break-word;
@@ -730,7 +730,7 @@ ol ol ul, ol ul ul, ul ol ul, ul ul ul {
   padding: 5px;
   text-transform: none;
   font-size: 15px;
-  line-height: 1.4;
+  line-height: 1.5;
   font-weight: normal;
   color: #fff;
   background-image: -webkit-linear-gradient(top, rgba(255, 255, 255, 0.2) 0, rgba(255, 255, 255, 0) 100%);
@@ -753,7 +753,7 @@ ol ol ul, ol ul ul, ul ol ul, ul ul ul {
 }
 .panel-container .panel > .inner > h3:first-child, .panel-container .panel > h3:first-child {
   font-size: 17px;
-  line-height: 1.4;
+  line-height: 1.5;
 }
 .post {
   background: #f4f4f4;
@@ -770,7 +770,7 @@ ol ol ul, ol ul ul, ul ol ul, ul ul ul {
   clear: both;
 }
 .post > .inner {
-  padding: 5px 10px;
+  padding: 8px 10px;
 }
 .rowbg {
   margin: 5px 5px 2px 5px;
@@ -926,7 +926,7 @@ ul.linklist.bulletin > li.no-bulletin:before {
   display: none;
   position: absolute;
   left: 0;
-  top: 1.4em;
+  top: 1.5em;
   z-index: 30;
   padding: 0;
   margin-right: -500px;
@@ -939,7 +939,7 @@ ul.linklist.bulletin > li.no-bulletin:before {
 }
 .dropdown-up .dropdown {
   top: auto;
-  bottom: 1.4em;
+  bottom: 1.5em;
 }
 .dropdown-left .dropdown, .nojs .rightside .dropdown {
   left: auto;
@@ -1142,7 +1142,7 @@ table.table1 thead th {
   filter: progid:DXImageTransform.Microsoft.gradient(startColorstr=#30FFFFFF, endColorstr=#00FFFFFF);
   box-shadow: 0 5px 5px -5px rgba(0, 0, 0, 0.2);
   text-transform: none;
-  line-height: 1.4;
+  line-height: 1.5;
   font-weight: normal;
   font-size: 13px;
   padding: 4px;
@@ -1161,7 +1161,7 @@ table.table1 tbody tr {
 }
 table.table1 td {
   font-size: 12px;
-  line-height: 1.4;
+  line-height: 1.5;
 }
 table.table1 tbody td {
   padding: 5px;
@@ -1263,6 +1263,9 @@ table.info tbody th {
   text-align: left;
   max-width: 100%;
 }
+.avatar-rank-container {
+  max-width: 20%;
+}
 .left-box.profile-details {
   width: 80%;
 }
@@ -1306,11 +1309,6 @@ fieldset.fields1 ul.recipients {
 fieldset.fields1 dd.recipients {
   clear: left;
   margin-left: 1em;
-}
-fieldset.fields1 ul.recipients input.button2 {
-  font-size: 9px;
-  margin-right: 0;
-  padding: 0;
 }
 fieldset.fields1 dl.pmlist > dt {
   width: auto !important;
@@ -1879,7 +1877,7 @@ a.forumtitle, a.topictitle {
   display: inline-block;
   font-family: "Droid Sans", "Open Sans", "Trebuchet MS", Helvetica, Arial, sans-serif;
   font-size: 16px;
-  line-height: 1.2;
+  line-height: 1.4;
   font-weight: 500;
   padding-bottom: 2px;
   text-decoration: none;
@@ -2040,7 +2038,7 @@ ul.topiclist li {
   padding: 5px;
   text-transform: none;
   font-size: 15px;
-  line-height: 1.4;
+  line-height: 1.5;
   font-weight: normal;
   color: #fff;
   background-image: -webkit-linear-gradient(top, rgba(255, 255, 255, 0.2) 0, rgba(255, 255, 255, 0) 100%);
@@ -2151,6 +2149,9 @@ ul.topiclist dfn {
   float: left;
   padding-top: 5px;
   margin-right: 5px;
+}
+.forum-image img {
+  max-width: 100%;
 }
 li.row {
   border-top: 1px solid transparent;
@@ -2330,6 +2331,14 @@ dd.option {
   text-align: center;
   font-size: 11px;
 }
+/* Memberlist
+----------------------------------------*/
+.group-description {
+  font-size: 14px;
+}
+.group-description ol, .group-description ul {
+  list-style-position: inside;
+}
 .forum-description {
   font-size: 13px;
   padding-top: 2px;
@@ -2435,7 +2444,7 @@ a.forumtitle + .forum-description.toggle, a.topictitle + .forum-description.togg
 .postbody {
   padding: 0;
   font-size: 11px;
-  line-height: 1.4;
+  line-height: 1.5;
 }
 .postprofile + .postbody {
   float: right;
@@ -2475,8 +2484,8 @@ a.forumtitle + .forum-description.toggle, a.topictitle + .forum-description.togg
   margin-right: 260px;
 }
 .postbody .ignore {
-  font-size: 13px;
-  line-height: 1.4;
+  font-size: 15px;
+  line-height: 1.5;
 }
 .postbody h3 {
   float: left;
@@ -2504,8 +2513,8 @@ a.forumtitle + .forum-description.toggle, a.topictitle + .forum-description.togg
   margin-left: 180px;
 }
 .postbody .content {
-  font-size: 13px;
-  line-height: 1.4;
+  font-size: 15px;
+  line-height: 1.5;
   overflow-x: auto;
 }
 .postbody img.postimage {
@@ -2545,9 +2554,9 @@ a.forumtitle + .forum-description.toggle, a.topictitle + .forum-description.togg
   clear: both;
   min-height: 3em;
   overflow: hidden;
-  line-height: 1.4;
-  font-family: "Lucida Grande", "Trebuchet MS", Verdana, Helvetica, Arial, sans-serif;
-  font-size: 13px;
+  line-height: 1.5;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  font-size: 15px;
   padding-bottom: 1px;
 }
 .content h2, .panel h2 {
@@ -2567,13 +2576,13 @@ a.forumtitle + .forum-description.toggle, a.topictitle + .forum-description.togg
 .panel p {
   font-size: 13px;
   margin-bottom: 1em;
-  line-height: 1.4;
+  line-height: 1.5;
 }
 .content p {
-  font-family: "Lucida Grande", "Trebuchet MS", Verdana, Helvetica, Arial, sans-serif;
-  font-size: 13px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  font-size: 15px;
   margin-bottom: 1em;
-  line-height: 1.4;
+  line-height: 1.5;
 }
 .agreement {
   font-size: 12px;
@@ -2585,11 +2594,11 @@ a.forumtitle + .forum-description.toggle, a.topictitle + .forum-description.togg
   margin-bottom: 10px;
 }
 dl.faq, .content dl.faq {
-  font-family: "Lucida Grande", "Trebuchet MS", Verdana, Helvetica, Arial, sans-serif;
-  font-size: 13px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  font-size: 15px;
   margin-top: 1em;
   margin-bottom: 2em;
-  line-height: 1.4;
+  line-height: 1.5;
 }
 dl.faq dt, .content dl.faq dt {
   font-family: "Droid Sans", "Open Sans", "Trebuchet MS", Helvetica, Arial, sans-serif;
@@ -2615,7 +2624,7 @@ p.author {
   padding: 0 0 5px 0;
   font-family: Verdana, Helvetica, Arial, sans-serif;
   font-size: 11px;
-  line-height: 1.4;
+  line-height: 1.5;
   clear: both;
 }
 .signature {
@@ -2624,8 +2633,8 @@ p.author {
   font-size: 12px;
   border-top: 1px solid transparent;
   clear: left;
-  font-family: "Lucida Grande", "Trebuchet MS", Verdana, Helvetica, Arial, sans-serif;
-  line-height: 1.4;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
   overflow: hidden;
   width: 100%;
 }
@@ -2646,14 +2655,14 @@ dd .signature {
   margin: 0.8em 0 0.9em 3em;
 }
 .notice {
-  font-family: "Lucida Grande", "Trebuchet MS", Verdana, Helvetica, Arial, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   width: auto;
   margin-top: 1.5em;
   padding-top: 0.2em;
-  font-size: 13px;
+  font-size: 15px;
   border-top: 1px dashed transparent;
   clear: left;
-  line-height: 1.4;
+  line-height: 1.5;
 }
 ul.searchresults {
   list-style: none;
@@ -2666,7 +2675,7 @@ ul.searchresults {
 blockquote {
   border: 1px solid transparent;
   border-radius: 3px;
-  font-size: 12px;
+  font-size: 14px;
   margin: 8px 12px;
   overflow: hidden;
   padding: 5px;
@@ -2689,8 +2698,8 @@ blockquote cite {
   font-style: normal;
   font-weight: bold;
   display: block;
-  font-family: "Lucida Grande", "Trebuchet MS", Verdana, Helvetica, Arial, sans-serif;
-  font-size: 12px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  font-size: 14px;
   line-height: 1.6;
 }
 blockquote cite:before, .uncited:before {
@@ -2708,7 +2717,7 @@ blockquote cite > span {
   border: 1px solid transparent;
   border-radius: 3px;
   margin: 8px 12px;
-  font-size: 12px;
+  font-size: 14px;
   word-wrap: normal;
 }
 .codebox p {
@@ -2716,8 +2725,8 @@ blockquote cite > span {
   border-bottom: 1px solid transparent;
   margin-bottom: 3px;
   padding: 3px;
-  font-family: "Lucida Grande", "Trebuchet MS", Verdana, Helvetica, Arial, sans-serif;
-  font-size: 12px !important;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  font-size: 14px !important;
   line-height: 1.6;
   font-weight: bold;
   display: block;
@@ -2732,7 +2741,7 @@ blockquote .codebox {
   max-height: 200px;
   padding: 5px 3px;
   font-family: Monaco, "Andale Mono", "Courier New", Courier, mono;
-  font-size: 12px;
+  font-size: 14px;
   line-height: 1.3;
 }
 .attachbox {
@@ -2748,8 +2757,8 @@ blockquote .codebox {
   box-sizing: border-box;
 }
 .attachbox dt {
-  font-family: "Lucida Grande", "Trebuchet MS", Verdana, Helvetica, Arial, sans-serif;
-  font-size: 12px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  font-size: 14px;
   line-height: 1.6;
   font-weight: 500;
 }
@@ -2765,7 +2774,7 @@ blockquote .codebox {
   border: none;
 }
 .attachbox p, .attachbox p.stats {
-  line-height: 1.4;
+  line-height: 1.5;
   font-weight: normal;
   clear: left;
 }
@@ -2781,10 +2790,10 @@ div.inline-attachment dl.thumbnail, div.inline-attachment dl.file {
   margin-bottom: 4px;
 }
 div.inline-attachment p {
-  font-size: 12px;
+  font-size: 14px;
 }
 dl.file {
-  font-family: "Lucida Grande", "Trebuchet MS", Verdana, Helvetica, Arial, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   display: block;
 }
 dl.file dt {
@@ -2792,8 +2801,8 @@ dl.file dt {
   margin: 0;
   padding: 0;
   font-weight: bold;
-  font-family: "Lucida Grande", "Trebuchet MS", Verdana, Helvetica, Arial, sans-serif;
-  font-size: 12px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  font-size: 14px;
   line-height: 1.6;
 }
 dl.file dd {
@@ -2816,15 +2825,15 @@ dl.thumbnail dt a:hover img {
   border: 1px solid transparent;
 }
 fieldset.polls {
-  font-family: "Lucida Grande", "Trebuchet MS", Verdana, Helvetica, Arial, sans-serif;
-  font-size: 13px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  font-size: 15px;
 }
 fieldset.polls dl {
   margin: 0;
   border: 1px solid transparent;
   border-width: 1px 0;
   padding: 5px 0;
-  line-height: 1.4;
+  line-height: 1.5;
 }
 fieldset.polls dl:first-child {
   border-top-width: 0;
@@ -2843,7 +2852,7 @@ fieldset.polls dt {
   border-right: none;
   padding: 0;
   margin: 0;
-  font-size: 13px;
+  font-size: 15px;
 }
 fieldset.polls dd {
   float: left;
@@ -2851,7 +2860,7 @@ fieldset.polls dd {
   border-left: none;
   padding: 0 5px;
   margin-left: 0;
-  font-size: 13px;
+  font-size: 15px;
 }
 fieldset.polls dd.resultbar {
   width: 50%;
@@ -2870,7 +2879,7 @@ fieldset.polls dd div {
   border-radius: 4px;
 }
 .vote-submitted {
-  font-size: 15px;
+  font-size: 17px;
   font-weight: bold;
   text-align: center;
 }
@@ -2896,7 +2905,7 @@ fieldset.polls dd div {
 }
 .postprofile dd, .postprofile dt {
   font-size: 11px;
-  line-height: 1.4;
+  line-height: 1.5;
   margin-right: 8px;
 }
 .rtl .postprofile dd, .rtl .postprofile dt {
@@ -3250,7 +3259,7 @@ a.post {
 .post-buttons .dropdown a {
   display: block;
   font-size: 12px;
-  line-height: 1.4;
+  line-height: 1.5;
   text-align: left;
   margin-left: 18px;
   position: relative;
@@ -3331,7 +3340,7 @@ ul.linklist.bulletin > li.small-icon:before {
 }
 .panel-container .panel p {
   font-size: 13px;
-  line-height: 1.4;
+  line-height: 1.5;
 }
 .panel-container .panel ol {
   margin-left: 2em;
@@ -3482,7 +3491,7 @@ ul.cplist {
   top: 28px;
   margin-right: -2px;
   font-size: 12px;
-  line-height: 1.4;
+  line-height: 1.5;
   font-weight: normal;
 }
 .minitabs .dropdown {
@@ -3523,7 +3532,7 @@ ul.cplist {
   border-radius: 3px;
   text-decoration: none;
   font-size: 11px;
-  line-height: 1.4;
+  line-height: 1.5;
 }
 .navigation a:hover {
   text-decoration: none;
@@ -3677,11 +3686,11 @@ select optgroup option {
   font-family: Verdana, Helvetica, Arial, sans-serif;
 }
 textarea {
-  font-family: "Lucida Grande", "Trebuchet MS", Verdana, Helvetica, Arial, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   width: 60%;
   padding: 2px;
-  font-size: 13px;
-  line-height: 1.4;
+  font-size: 15px;
+  line-height: 1.5;
   border-radius: 2px;
   -webkit-appearance: none;
 }
@@ -3838,13 +3847,16 @@ fieldset.submit-buttons input {
   width: 80%;
 }
 .message-box textarea {
-  font-family: "Lucida Grande", "Trebuchet MS", Verdana, Helvetica, Arial, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
   width: 450px;
   height: 270px;
   min-width: 100%;
   max-width: 100%;
-  font-size: 13px;
-  line-height: 1.4;
+  font-size: 15px;
+  line-height: 1.5;
   resize: vertical;
   outline: 3px dashed transparent;
   outline-offset: -4px;
@@ -4169,15 +4181,6 @@ input.button1:focus, input.button2:focus, input.button3:focus {
   }
   .section-viewtopic .search-box .inputbox {
     width: 57px;
-  }
-  .action-bar .search-box .inputbox ::-moz-placeholder {
-    content: "Search...";
-  }
-  .action-bar .search-box .inputbox :-ms-input-placeholder {
-    content: "Search...";
-  }
-  .action-bar .search-box .inputbox ::-webkit-input-placeholder {
-    content: "Search...";
   }
 }
 @media (max-width: 500px) {
@@ -4504,6 +4507,9 @@ input.button1:focus, input.button2:focus, input.button3:focus {
     float: none;
     width: auto;
     clear: both;
+  }
+  .avatar-rank-container {
+    max-width: 100%;
   }
   fieldset.polls dt {
     width: 90%;

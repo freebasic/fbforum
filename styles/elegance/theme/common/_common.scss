@@ -1082,7 +1082,7 @@ $panel-heading-line-height:	$line-height !default;
 }
 
 .post > .inner {
-	padding: 5px 10px;
+	padding: 8px 10px;
 }
 
 .rowbg {
@@ -1633,6 +1633,10 @@ table.info tbody th {
 	max-width: 100%;
 }
 
+.avatar-rank-container {
+	max-width: 20%;
+}
+
 .left-box.profile-details {
 	width: 80%;
 }
@@ -1688,12 +1692,6 @@ fieldset.fields1 ul.recipients {
 fieldset.fields1 dd.recipients {
 	clear: left;
 	margin-left: 1em;
-}
-
-fieldset.fields1 ul.recipients  input.button2{
-	font-size: $font-size - 2px;
-	margin-right: 0;
-	padding: 0;
 }
 
 fieldset.fields1 dl.pmlist > dt {

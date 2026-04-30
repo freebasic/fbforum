@@ -126,6 +126,10 @@ ul.topiclist dfn {
 	margin-right: 5px;
 }
 
+.forum-image img {
+	max-width: 100%;
+}
+
 li.row {
 	border-top: 1px solid transparent;
 	border-bottom: 1px solid transparent;
@@ -353,6 +357,16 @@ dd.option {
 	line-height: 200%;
 	text-align: center;
 	font-size: $font-size;
+}
+
+/* Memberlist
+----------------------------------------*/
+.group-description {
+	font-size: 14px;
+}
+
+.group-description ol, .group-description ul {
+	list-style-position: inside;
 }
 
 // Forums list layout
