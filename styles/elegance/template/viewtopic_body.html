@@ -348,6 +348,8 @@
 				<a href="{postrow.U_MCP_REPORT}"><i class="icon fa-exclamation fa-fw icon-red" aria-hidden="true"></i><strong>{L_POST_REPORTED}</strong></a>
 			</p>
 			<!-- ENDIF -->
+			
+			{% EVENT viewtopic_body_postrow_content_before %}
 
 			<div class="content">{postrow.MESSAGE}</div>
 
@@ -477,5 +479,7 @@
 		<p>{LOGGED_IN_USER_LIST}</p>
 	</div>
 <!-- ENDIF -->
+
+{% EVENT viewtopic_body_online_list_after %}
 
 <!-- INCLUDE overall_footer.html -->

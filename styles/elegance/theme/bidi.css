@@ -738,15 +738,6 @@ li.breadcrumbs span:first-child > a {
 	float: right;
 }
 
-/* Responsive *CP navigation
-----------------------------------------*/
-@media (max-width: 900px)
-{
-	.rtl .cp-menu, .rtl .navigation, .rtl .cp-main {
-		float: none;
-	}
-}
-
 /**
 * forms.css
 */

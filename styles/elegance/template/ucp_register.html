@@ -38,7 +38,7 @@
 	<!-- EVENT ucp_register_credentials_before -->
 	<dl>
 		<dt><label for="username">{L_USERNAME}{L_COLON}</label><br /><span>{L_USERNAME_EXPLAIN}</span></dt>
-		<dd><input type="text" tabindex="1" name="username" id="username" size="25" value="{USERNAME}" class="inputbox autowidth" title="{L_USERNAME}" /></dd>
+		<dd><input type="text" tabindex="1" name="username" id="username" size="25" value="{USERNAME}" class="inputbox autowidth" title="{L_USERNAME}" autocomplete="off" /></dd>
 	</dl>
 	<dl>
 		<dt><label for="new_password">{L_PASSWORD}{L_COLON}</label><br /><span>{L_PASSWORD_EXPLAIN}</span></dt>
@@ -67,8 +67,7 @@
 	<!-- INCLUDE timezone_option.html -->
 
 	<!-- EVENT ucp_register_profile_fields_before -->
-	<!-- IF .profile_fields -->
-		<dl><dd><strong>{L_ITEMS_REQUIRED}</strong></dd></dl>
+	{% if PROFILE_FIELDS_REQUIRED %}<dl><dd><strong>{L_ITEMS_REQUIRED}</strong></dd></dl>{% endif %}
 
 	<!-- BEGIN profile_fields -->
 		<dl>
@@ -78,7 +77,6 @@
 			<dd>{profile_fields.FIELD}</dd>
 		</dl>
 	<!-- END profile_fields -->
-	<!-- ENDIF -->
 
 	<!-- EVENT ucp_register_profile_fields_after -->
 	</fieldset>
