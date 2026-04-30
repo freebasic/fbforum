@@ -266,6 +266,9 @@ fieldset.submit-buttons input {
 
 .message-box textarea {
 	font-family: $post-content-font-family;
+	-webkit-box-sizing: border-box;
+	-moz-box-sizing: border-box;
+	box-sizing: border-box;
 	width: 450px;
 	height: 270px;
 	min-width: 100%;

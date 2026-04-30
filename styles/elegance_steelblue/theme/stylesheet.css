@@ -767,9 +767,10 @@ ol ol ul, ol ul ul, ul ol ul, ul ul ul {
   padding: 0;
   margin-bottom: 10px;
   position: relative;
+  clear: both;
 }
 .post > .inner {
-  padding: 5px 10px;
+  padding: 8px 10px;
 }
 .rowbg {
   margin: 5px 5px 2px 5px;
@@ -1262,6 +1263,9 @@ table.info tbody th {
   text-align: left;
   max-width: 100%;
 }
+.avatar-rank-container {
+  max-width: 20%;
+}
 .left-box.profile-details {
   width: 80%;
 }
@@ -1305,11 +1309,6 @@ fieldset.fields1 ul.recipients {
 fieldset.fields1 dd.recipients {
   clear: left;
   margin-left: 1em;
-}
-fieldset.fields1 ul.recipients input.button2 {
-  font-size: 9px;
-  margin-right: 0;
-  padding: 0;
 }
 fieldset.fields1 dl.pmlist > dt {
   width: auto !important;
@@ -2151,6 +2150,9 @@ ul.topiclist dfn {
   padding-top: 5px;
   margin-right: 5px;
 }
+.forum-image img {
+  max-width: 100%;
+}
 li.row {
   border-top: 1px solid transparent;
   border-bottom: 1px solid transparent;
@@ -2328,6 +2330,14 @@ dd.option {
   line-height: 200%;
   text-align: center;
   font-size: 11px;
+}
+/* Memberlist
+----------------------------------------*/
+.group-description {
+  font-size: 14px;
+}
+.group-description ol, .group-description ul {
+  list-style-position: inside;
 }
 .forum-description {
   font-size: 13px;
@@ -2911,6 +2921,9 @@ fieldset.polls dd div {
 }
 .postprofile dt.no-profile-rank, .postprofile dd.profile-rank, .postprofile .search-result-date {
   margin-bottom: 10px;
+}
+.profile-rank img {
+  max-width: 160px;
 }
 .postprofile .has-avatar .avatar-container {
   margin-bottom: 3px;
@@ -3561,12 +3574,6 @@ ol.def-rules li {
 .pmlist li.bg2 {
   padding: 0 3px;
 }
-/* DEPRECATED 3.2.6
-.pmlist li.pm_message_reported_colour, .pm_message_reported_colour {
-	border-left-color: transparent;
-	border-right-color: transparent;
-}
-*/
 .pmlist li.pm_message_reported_colour, .pm_message_reported_colour, .pmlist li.pm_marked_colour, .pm_marked_colour, .pmlist li.pm_replied_colour, .pm_replied_colour, .pmlist li.pm_friend_colour, .pm_friend_colour, .pmlist li.pm_foe_colour, .pm_foe_colour {
   padding: 0;
   border: solid 3px transparent;
@@ -3841,6 +3848,9 @@ fieldset.submit-buttons input {
 }
 .message-box textarea {
   font-family: "Lucida Grande", "Trebuchet MS", Verdana, Helvetica, Arial, sans-serif;
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
   width: 450px;
   height: 270px;
   min-width: 100%;
@@ -4172,15 +4182,6 @@ input.button1:focus, input.button2:focus, input.button3:focus {
   .section-viewtopic .search-box .inputbox {
     width: 57px;
   }
-  .action-bar .search-box .inputbox ::-moz-placeholder {
-    content: "Search...";
-  }
-  .action-bar .search-box .inputbox :-ms-input-placeholder {
-    content: "Search...";
-  }
-  .action-bar .search-box .inputbox ::-webkit-input-placeholder {
-    content: "Search...";
-  }
 }
 @media (max-width: 500px) {
   dd label {
@@ -4506,6 +4507,9 @@ input.button1:focus, input.button2:focus, input.button3:focus {
     float: none;
     width: auto;
     clear: both;
+  }
+  .avatar-rank-container {
+    max-width: 100%;
   }
   fieldset.polls dt {
     width: 90%;
