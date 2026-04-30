@@ -330,17 +330,6 @@ function parseDocument($container) {
 	});
 
 	/**
-	* Adjust HTML code for IE8 and older versions
-	*/
-	// if (oldBrowser) {
-	// 	// Fix .linklist.bulletin lists
-	// 	$container
-	// 		.find('ul.linklist.bulletin > li')
-	// 		.filter(':first-child, .rightside:last-child')
-	// 		.addClass('no-bulletin');
-	// }
-
-	/**
 	* Resize navigation (breadcrumbs) block to keep all links on same line
 	*/
 	$container.find('.navlinks').each(function() {
@@ -661,7 +650,7 @@ function parseDocument($container) {
 				html = $children.html();
 			}
 
-			$block.append((first ? '' : '<br />') + html);
+			$block.append((first ? '' : '<br>') + html);
 
 			first = false;
 		});
@@ -681,7 +670,7 @@ function parseDocument($container) {
 
 		// Find all headers, get contents
 		$list.prev('.topiclist').find('li.header dd').not('.mark').each(function() {
-			headers.push($(this).text());
+			headers.push($("<div>").text($(this).text()).html());
 			headersLength++;
 		});
 
@@ -718,7 +707,7 @@ function parseDocument($container) {
 					html = headers[i] + ': <strong>' + html + '</strong>';
 				}
 
-				$block.append((first ? '' : '<br />') + html);
+				$block.append((first ? '' : '<br>') + html);
 
 				first = false;
 			});
@@ -784,7 +773,9 @@ function parseDocument($container) {
 				}
 
 				if ((text.length && text !== '-') || cell.children().length) {
-					cell.prepend('<dfn style="display: none;">' + headers[column] + '</dfn>');
+					if (headers[column].length) {
+						cell.prepend($("<dfn>").css('display', 'none').text(headers[column]));
+					}
 				} else {
 					cell.addClass('empty');
 				}

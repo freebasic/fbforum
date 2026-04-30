@@ -64,6 +64,7 @@ $lang = array_merge($lang, array(
 	'ACCOUNT_DEACTIVATED'			=> 'Your account has been manually deactivated and is only able to be reactivated by an administrator.',
 	'ACP'							=> 'Administration Control Panel',
 	'ACP_SHORT'						=> 'ACP',
+	'ACTIVATION_ALREADY_SENT'		=> 'The activation email has already been sent to your email address. You can try again after 24 hours. If you continue to have problems activating your account, please contact a board administrator.',
 	'ACTIVE'						=> 'active',
 	'ACTIVE_ERROR'					=> 'The specified username is currently inactive. If you have problems activating your account, please contact a board administrator.',
 	'ADMINISTRATOR'					=> 'Administrator',
@@ -166,6 +167,11 @@ $lang = array_merge($lang, array(
 	'CHANGING_PREFERENCES'	=> 'Changing board preferences',
 	'CHANGING_PROFILE'		=> 'Changing profile settings',
 	'CHARACTERS'			=> array(
+		1	=> '%d character',
+		2	=> '%d characters',
+	),
+	// Special version to be used when describing ranges e.g. "min x characters and max y characters"
+	'CHARACTERS_XY'			=> array(
 		1	=> '%d character',
 		2	=> '%d characters',
 	),
@@ -351,6 +357,7 @@ $lang = array_merge($lang, array(
 	'HIDE_ME'						=> 'Hide my online status this session',
 	'HOURS'							=> 'Hours',
 	'HOME'							=> 'Home',
+	'HTTP_HANDLER_NOT_FOUND'		=> 'The operation could not be completed because the cURL PHP extension and allow_url_fopen PHP ini setting have been disabled and no other HTTP handler could be found.',
 
 	'ICQ'						=> 'ICQ',
 	'IF'						=> 'If',

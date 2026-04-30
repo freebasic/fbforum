@@ -300,7 +300,7 @@ class ucp_register
 
 				if ($config['max_reg_attempts'] && $captcha->get_attempt_count() > $config['max_reg_attempts'])
 				{
-					$error[] = $user->lang['TOO_MANY_REGISTERS'];
+					trigger_error('TOO_MANY_REGISTERS');
 				}
 			}
 
@@ -381,18 +381,19 @@ class ucp_register
 				$passwords_manager = $phpbb_container->get('passwords.manager');
 
 				$user_row = array(
-					'username'				=> $data['username'],
-					'user_password'			=> $passwords_manager->hash($data['new_password']),
-					'user_email'			=> $data['email'],
-					'group_id'				=> (int) $group_id,
-					'user_timezone'			=> $data['tz'],
-					'user_lang'				=> $data['lang'],
-					'user_type'				=> $user_type,
-					'user_actkey'			=> $user_actkey,
-					'user_ip'				=> $user->ip,
-					'user_regdate'			=> time(),
-					'user_inactive_reason'	=> $user_inactive_reason,
-					'user_inactive_time'	=> $user_inactive_time,
+					'username'					=> $data['username'],
+					'user_password'				=> $passwords_manager->hash($data['new_password']),
+					'user_email'				=> $data['email'],
+					'group_id'					=> (int) $group_id,
+					'user_timezone'				=> $data['tz'],
+					'user_lang'					=> $data['lang'],
+					'user_type'					=> $user_type,
+					'user_actkey'				=> $user_actkey,
+					'user_actkey_expiration'	=> $user::get_token_expiration(),
+					'user_ip'					=> $user->ip,
+					'user_regdate'				=> time(),
+					'user_inactive_reason'		=> $user_inactive_reason,
+					'user_inactive_time'		=> $user_inactive_time,
 				);
 
 				if ($config['new_member_post_limit'])
@@ -644,8 +645,8 @@ class ucp_register
 			'EMAIL'				=> $data['email'],
 
 			'L_REG_COND'				=> $l_reg_cond,
-			'L_USERNAME_EXPLAIN'		=> $user->lang($config['allow_name_chars'] . '_EXPLAIN', $user->lang('CHARACTERS', (int) $config['min_name_chars']), $user->lang('CHARACTERS', (int) $config['max_name_chars'])),
-			'L_PASSWORD_EXPLAIN'		=> $user->lang($config['pass_complex'] . '_EXPLAIN', $user->lang('CHARACTERS', (int) $config['min_pass_chars'])),
+			'L_USERNAME_EXPLAIN'		=> $user->lang($config['allow_name_chars'] . '_EXPLAIN', $user->lang('CHARACTERS_XY', (int) $config['min_name_chars']), $user->lang('CHARACTERS_XY', (int) $config['max_name_chars'])),
+			'L_PASSWORD_EXPLAIN'		=> $user->lang($config['pass_complex'] . '_EXPLAIN', $user->lang('CHARACTERS_XY', (int) $config['min_pass_chars'])),
 
 			'S_LANG_OPTIONS'	=> (count($lang_row) > 1) ? language_select($data['lang'], $lang_row) : '',
 			'S_TZ_PRESELECT'	=> !$submit,

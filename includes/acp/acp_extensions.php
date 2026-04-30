@@ -12,6 +12,7 @@
 */
 
 use phpbb\exception\exception_interface;
+use phpbb\exception\runtime_exception;
 use phpbb\exception\version_check_exception;
 
 /**
@@ -344,7 +345,7 @@ class acp_extensions
 
 						$this->template->assign_block_vars('updates_available', $updates_available);
 					}
-					catch (exception_interface $e)
+					catch (runtime_exception $e)
 					{
 						$message = call_user_func_array(array($this->user, 'lang'), array_merge(array($e->getMessage()), $e->get_parameters()));
 
@@ -423,7 +424,7 @@ class acp_extensions
 						$enabled_extension_meta_data[$name]['S_VERSIONCHECK'] = true;
 						$enabled_extension_meta_data[$name]['U_VERSIONCHECK_FORCE'] = $this->u_action . '&amp;action=details&amp;versioncheck_force=1&amp;ext_name=' . urlencode($md_manager->get_metadata('name'));
 					}
-					catch (exception_interface $e)
+					catch (runtime_exception $e)
 					{
 						// Ignore exceptions due to the version check
 					}
@@ -433,7 +434,7 @@ class acp_extensions
 					$enabled_extension_meta_data[$name]['S_VERSIONCHECK'] = false;
 				}
 			}
-			catch (exception_interface $e)
+			catch (runtime_exception $e)
 			{
 				$message = call_user_func_array(array($this->user, 'lang'), array_merge(array($e->getMessage()), $e->get_parameters()));
 				$this->template->assign_block_vars('disabled', array(
@@ -501,7 +502,7 @@ class acp_extensions
 			{
 				$disabled_extension_meta_data[$name]['S_VERSIONCHECK'] = false;
 			}
-			catch (exception_interface $e)
+			catch (runtime_exception $e)
 			{
 				$message = call_user_func_array(array($this->user, 'lang'), array_merge(array($e->getMessage()), $e->get_parameters()));
 				$this->template->assign_block_vars('disabled', array(
@@ -572,10 +573,10 @@ class acp_extensions
 			{
 				$available_extension_meta_data[$name]['S_VERSIONCHECK'] = false;
 			}
-			catch (exception_interface $e)
+			catch (runtime_exception $e)
 			{
 				$message = call_user_func_array(array($this->user, 'lang'), array_merge(array($e->getMessage()), $e->get_parameters()));
-				$this->template->assign_block_vars('disabled', array(
+				$this->template->assign_block_vars('not_installed', array(
 					'META_DISPLAY_NAME'		=> $this->user->lang('EXTENSION_INVALID_LIST', $name, $message),
 					'S_VERSIONCHECK'		=> false,
 				));
@@ -589,9 +590,9 @@ class acp_extensions
 			$block_vars['NAME'] = $name;
 			$block_vars['U_DETAILS'] = $this->u_action . '&amp;action=details&amp;ext_name=' . urlencode($name);
 
-			$this->template->assign_block_vars('disabled', $block_vars);
+			$this->template->assign_block_vars('not_installed', $block_vars);
 
-			$this->output_actions('disabled', array(
+			$this->output_actions('not_installed', array(
 				'ENABLE'		=> $this->u_action . '&amp;action=enable_pre&amp;ext_name=' . urlencode($name),
 			));
 		}

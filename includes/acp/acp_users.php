@@ -385,14 +385,18 @@ class acp_users
 									$user_actkey = empty($user_activation_key) ? $user_actkey : $user_activation_key;
 								}
 
-								if ($user_row['user_type'] == USER_NORMAL || empty($user_activation_key))
-								{
-									$sql = 'UPDATE ' . USERS_TABLE . "
-										SET user_actkey = '" . $db->sql_escape($user_actkey) . "'
-										WHERE user_id = $user_id";
-									$db->sql_query($sql);
-								}
+								// Always update actkey even if same and also update actkey expiration to 24 hours from now
+								$sql_ary = [
+									'user_actkey'				=> $user_actkey,
+									'user_actkey_expiration'	=> $user::get_token_expiration(),
+								];
 
+								$sql = 'UPDATE ' . USERS_TABLE . '
+									SET ' . $db->sql_build_array('UPDATE', $sql_ary) . '
+									WHERE user_id = ' . (int) $user_id;
+								$db->sql_query($sql);
+
+								// Start sending email
 								$messenger = new messenger(false);
 
 								$messenger->template($email_template, $user_row['user_lang']);
@@ -1084,7 +1088,7 @@ class acp_users
 					$s_action_options .= '<option value="' . $value . '">' . $user->lang['USER_ADMIN_' . $lang] . '</option>';
 				}
 
-				$last_active = (!empty($user_row['session_time'])) ? $user_row['session_time'] : $user_row['user_lastvisit'];
+				$last_active = $user_row['user_last_active'] ?: ($user_row['session_time'] ?? 0);
 
 				$inactive_reason = '';
 				if ($user_row['user_type'] == USER_INACTIVE)
@@ -1128,7 +1132,7 @@ class acp_users
 				$db->sql_freeresult($result);
 
 				$template->assign_vars(array(
-					'L_NAME_CHARS_EXPLAIN'		=> $user->lang($config['allow_name_chars'] . '_EXPLAIN', $user->lang('CHARACTERS', (int) $config['min_name_chars']), $user->lang('CHARACTERS', (int) $config['max_name_chars'])),
+					'L_NAME_CHARS_EXPLAIN'		=> $user->lang($config['allow_name_chars'] . '_EXPLAIN', $user->lang('CHARACTERS_XY', (int) $config['min_name_chars']), $user->lang('CHARACTERS_XY', (int) $config['max_name_chars'])),
 					'L_CHANGE_PASSWORD_EXPLAIN'	=> $user->lang($config['pass_complex'] . '_EXPLAIN', $user->lang('CHARACTERS', (int) $config['min_pass_chars'])),
 					'L_POSTS_IN_QUEUE'			=> $user->lang('NUM_POSTS_IN_QUEUE', $user_row['posts_in_queue']),
 					'S_FOUNDER'					=> ($user->data['user_type'] == USER_FOUNDER) ? true : false,
@@ -2515,7 +2519,7 @@ class acp_users
 							'U_EDIT_GROUP'		=> append_sid("{$phpbb_admin_path}index.$phpEx", "i=groups&amp;mode=manage&amp;action=edit&amp;u=$user_id&amp;g={$data['group_id']}&amp;back_link=acp_users_groups"),
 							'U_DEFAULT'			=> $this->u_action . "&amp;action=default&amp;u=$user_id&amp;g=" . $data['group_id'] . '&amp;hash=' . generate_link_hash('acp_users'),
 							'U_DEMOTE_PROMOTE'	=> $this->u_action . '&amp;action=' . (($data['group_leader']) ? 'demote' : 'promote') . "&amp;u=$user_id&amp;g=" . $data['group_id'] . '&amp;hash=' . generate_link_hash('acp_users'),
-							'U_DELETE'			=> $this->u_action . "&amp;action=delete&amp;u=$user_id&amp;g=" . $data['group_id'],
+							'U_DELETE'			=> count($id_ary) > 1 ? $this->u_action . "&amp;action=delete&amp;u=$user_id&amp;g=" . $data['group_id'] : '',
 							'U_APPROVE'			=> ($group_type == 'pending') ? $this->u_action . "&amp;action=approve&amp;u=$user_id&amp;g=" . $data['group_id'] : '',
 
 							'GROUP_NAME'		=> $group_helper->get_name($data['group_name']),

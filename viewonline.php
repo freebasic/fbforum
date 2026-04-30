@@ -180,6 +180,8 @@ $vars = array('sql_ary', 'show_guests', 'guest_counter', 'forum_data');
 extract($phpbb_dispatcher->trigger_event('core.viewonline_modify_sql', compact($vars)));
 
 $result = $db->sql_query($db->sql_build_query('SELECT', $sql_ary));
+$session_data_rowset = $db->sql_fetchrowset($result);
+$db->sql_freeresult($result);
 
 $prev_id = $prev_ip = $user_list = array();
 $logged_visible_online = $logged_hidden_online = $counter = 0;
@@ -190,7 +192,10 @@ $controller_helper = $phpbb_container->get('controller.helper');
 /** @var \phpbb\group\helper $group_helper */
 $group_helper = $phpbb_container->get('group_helper');
 
-while ($row = $db->sql_fetchrow($result))
+// Get forum IDs for session pages which have only 't' parameter
+$viewonline_helper->get_forum_ids($session_data_rowset);
+
+foreach ($session_data_rowset as $row)
 {
 	if ($row['user_id'] != ANONYMOUS && !isset($prev_id[$row['user_id']]))
 	{
@@ -438,7 +443,6 @@ while ($row = $db->sql_fetchrow($result))
 
 	$template->assign_block_vars('user_row', $template_row);
 }
-$db->sql_freeresult($result);
 unset($prev_id, $prev_ip);
 
 $order_legend = ($config['legend_sort_groupname']) ? 'group_name' : 'group_legend';
@@ -466,19 +470,24 @@ else
 }
 $result = $db->sql_query($sql);
 
-$legend = '';
+$legend = [];
 while ($row = $db->sql_fetchrow($result))
 {
+	$colour_text = ($row['group_colour']) ? ' style="color:#' . $row['group_colour'] . '"' : '';
+	$group_name = $group_helper->get_name($row['group_name']);
+
 	if ($row['group_name'] == 'BOTS')
 	{
-		$legend .= (($legend != '') ? ', ' : '') . '<span style="color:#' . $row['group_colour'] . '">' . $user->lang['G_BOTS'] . '</span>';
+		$legend[] = '<span' . $colour_text . '>' . $group_name . '</span>';
 	}
 	else
 	{
-		$legend .= (($legend != '') ? ', ' : '') . '<a style="color:#' . $row['group_colour'] . '" href="' . append_sid("{$phpbb_root_path}memberlist.$phpEx", 'mode=group&amp;g=' . $row['group_id']) . '">' . $group_helper->get_name($row['group_name']) . '</a>';
+		$legend[] = '<a' . $colour_text . ' href="' . append_sid("{$phpbb_root_path}memberlist.$phpEx", 'mode=group&amp;g=' . $row['group_id']) . '">' . $group_name . '</a>';
 	}
 }
 $db->sql_freeresult($result);
+
+$legend = implode($user->lang['COMMA_SEPARATOR'], $legend);
 
 // Refreshing the page every 60 seconds...
 meta_refresh(60, append_sid("{$phpbb_root_path}viewonline.$phpEx", "sg=$show_guests&amp;sk=$sort_key&amp;sd=$sort_dir&amp;start=$start"));
