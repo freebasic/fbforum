@@ -299,7 +299,11 @@ class fulltext_native extends \phpbb\search\base
 		);
 
 		$keywords = preg_replace($match, $replace, $keywords);
-		$num_keywords = count(explode(' ', $keywords));
+
+		// Ensure a space exists before +, - and | to make the split and count work correctly
+		$countable_keywords = preg_replace('/(?<!\s)(\+|\-|\|)/', ' $1', $keywords);
+
+		$num_keywords = count(explode(' ', $countable_keywords));
 
 		// We limit the number of allowed keywords to minimize load on the database
 		if ($this->config['max_num_search_keywords'] && $num_keywords > $this->config['max_num_search_keywords'])
@@ -393,7 +397,7 @@ class fulltext_native extends \phpbb\search\base
 				$word = substr($word, 1);
 
 				// a group of which at least one may not be in the resulting posts
-				if ($word[0] == '(')
+				if (isset($word[0]) && $word[0] == '(')
 				{
 					$word = array_unique(explode('|', substr($word, 1, -1)));
 					$mode = 'must_exclude_one';

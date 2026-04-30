@@ -39,6 +39,9 @@ class path_helper
 	/** @var string */
 	protected $web_root_path;
 
+	/** @var bool Flag whether we're in adm path */
+	protected $in_adm_path = false;
+
 	/**
 	* Constructor
 	*
@@ -117,7 +120,13 @@ class path_helper
 				$path = substr($path, 8);
 			}
 
-			return $this->filesystem->clean_path($web_root_path . $path);
+			$path = $this->filesystem->clean_path($web_root_path . $path);
+
+			// Further clean path if we're in adm
+			if ($this->in_adm_path && strpos($path, $this->phpbb_root_path . $this->adm_relative_path) === 0)
+			{
+				$path = substr($path, strlen($this->phpbb_root_path . $this->adm_relative_path));
+			}
 		}
 
 		return $path;
@@ -151,14 +160,14 @@ class path_helper
 	*/
 	public function get_web_root_path()
 	{
-		if ($this->symfony_request === null)
-		{
-			return $this->phpbb_root_path;
-		}
-
 		if (null !== $this->web_root_path)
 		{
 			return $this->web_root_path;
+		}
+
+		if (defined('PHPBB_USE_BOARD_URL_PATH') && PHPBB_USE_BOARD_URL_PATH)
+		{
+			return $this->web_root_path = generate_board_url() . '/';
 		}
 
 		// We do not need to escape $path_info, $request_uri and $script_name because we can not find their content in the result.
@@ -179,6 +188,11 @@ class path_helper
 		if ($path_info === '/' && preg_match('/app\.' . $this->php_ext . '\/$/', $request_uri))
 		{
 			return $this->web_root_path = $this->filesystem->clean_path('./../' . $this->phpbb_root_path);
+		}
+
+		if ($path_info === '/' && defined('ADMIN_START') && preg_match('/\/' . preg_quote($this->adm_relative_path, '/') . 'index\.' . $this->php_ext . '$/', $script_name))
+		{
+			$this->in_adm_path = true;
 		}
 
 		/*
@@ -209,16 +223,16 @@ class path_helper
 		*
 		* The referer must be specified as a parameter in the query.
 		*/
-		if ($this->request->is_ajax() && $this->symfony_request->get('_referer'))
+		if ($this->request->is_ajax() && $this->request->header('Referer'))
 		{
 			// We need to escape $absolute_board_url because it can be partially concatenated to the result.
 			$absolute_board_url = $this->request->escape($this->symfony_request->getSchemeAndHttpHost() . $this->symfony_request->getBasePath(), true);
 
 			$referer_web_root_path = $this->get_web_root_path_from_ajax_referer(
-				$this->symfony_request->get('_referer'),
+				$this->request->header('Referer'),
 				$absolute_board_url
 			);
-			return $this->web_root_path = $this->phpbb_root_path . $referer_web_root_path;
+			return $this->web_root_path = $referer_web_root_path;
 		}
 
 		// How many corrections might we need?
@@ -236,7 +250,7 @@ class path_helper
 
 		// Prepend ../ to the phpbb_root_path as many times as / exists in path_info
 		$this->web_root_path = $this->filesystem->clean_path(
-			'./' . str_repeat('../', $corrections) . $this->phpbb_root_path
+			'./' . str_repeat('../', max(0, $corrections)) . $this->phpbb_root_path
 		);
 		return $this->web_root_path;
 	}
@@ -264,7 +278,7 @@ class path_helper
 				$relative_referer_path = substr($relative_referer_path, 0, $has_params);
 			}
 			$corrections = substr_count($relative_referer_path, '/');
-			return $this->phpbb_root_path . str_repeat('../', $corrections - 1);
+			return $this->phpbb_root_path . str_repeat('../', max(0, $corrections - 1));
 		}
 
 		// If not, it's a bit more complicated. We go to the parent directory

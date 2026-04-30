@@ -143,7 +143,7 @@ class ucp_profile
 							));
 						}
 
-						if ($auth->acl_get('u_chgpasswd') && $data['new_password'] && !$passwords_manager->check($data['new_password'], $user->data['user_password']))
+						if ($auth->acl_get('u_chgpasswd') && $data['new_password'])
 						{
 							$sql_ary['user_passchg'] = time();
 
@@ -196,9 +196,10 @@ class ucp_profile
 							{
 								$notifications_manager = $phpbb_container->get('notification_manager');
 								$notifications_manager->add_notifications('notification.type.admin_activate_user', array(
-									'user_id'		=> $user->data['user_id'],
-									'user_actkey'	=> $user_actkey,
-									'user_regdate'	=> time(), // Notification time
+									'user_id'					=> $user->data['user_id'],
+									'user_actkey'				=> $user_actkey,
+									'user_actkey_expiration'	=> $user::get_token_expiration(),
+									'user_regdate'				=> time(), // Notification time
 								));
 							}
 
@@ -265,7 +266,7 @@ class ucp_profile
 					'NEW_PASSWORD'		=> $data['new_password'],
 					'CUR_PASSWORD'		=> '',
 
-					'L_USERNAME_EXPLAIN'		=> $user->lang($config['allow_name_chars'] . '_EXPLAIN', $user->lang('CHARACTERS', (int) $config['min_name_chars']), $user->lang('CHARACTERS', (int) $config['max_name_chars'])),
+					'L_USERNAME_EXPLAIN'		=> $user->lang($config['allow_name_chars'] . '_EXPLAIN', $user->lang('CHARACTERS_XY', (int) $config['min_name_chars']), $user->lang('CHARACTERS_XY', (int) $config['max_name_chars'])),
 					'L_CHANGE_PASSWORD_EXPLAIN'	=> $user->lang($config['pass_complex'] . '_EXPLAIN', $user->lang('CHARACTERS', (int) $config['min_pass_chars'])),
 
 					'S_FORCE_PASSWORD'	=> ($auth->acl_get('u_chgpasswd') && $config['chg_passforce'] && $user->data['user_passchg'] < time() - ($config['chg_passforce'] * 86400)) ? true : false,

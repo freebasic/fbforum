@@ -138,12 +138,22 @@ class mssqlnative extends \phpbb\db\driver\mssql_base
 
 			if ($this->query_result === false)
 			{
-				if (($this->query_result = @sqlsrv_query($this->db_connect_id, $query, array(), $this->query_options)) === false)
+				try
+				{
+					$this->query_result = @sqlsrv_query($this->db_connect_id, $query, array(), $this->query_options);
+				}
+				catch (\Error $e)
+				{
+					// Do nothing as SQL driver will report the error
+				}
+
+				if ($this->query_result === false)
 				{
 					$this->sql_error($query);
 				}
-				// reset options for next query
-				$this->query_options = array();
+
+				// Reset options for the next query
+				$this->query_options = [];
 
 				if ($this->debug_sql_explain)
 				{
@@ -159,14 +169,16 @@ class mssqlnative extends \phpbb\db\driver\mssql_base
 					return false;
 				}
 
+				$safe_query_id = $this->clean_query_id($this->query_result);
+
 				if ($cache && $cache_ttl)
 				{
-					$this->open_queries[(int) $this->query_result] = $this->query_result;
+					$this->open_queries[$safe_query_id] = $this->query_result;
 					$this->query_result = $cache->sql_save($this, $query, $this->query_result, $cache_ttl);
 				}
 				else if (strpos($query, 'SELECT') === 0)
 				{
-					$this->open_queries[(int) $this->query_result] = $this->query_result;
+					$this->open_queries[$safe_query_id] = $this->query_result;
 				}
 			}
 			else if ($this->debug_sql_explain)
@@ -242,9 +254,10 @@ class mssqlnative extends \phpbb\db\driver\mssql_base
 			$query_id = $this->query_result;
 		}
 
-		if ($cache && $cache->sql_exists($query_id))
+		$safe_query_id = $this->clean_query_id($query_id);
+		if ($cache && $cache->sql_exists($safe_query_id))
 		{
-			return $cache->sql_fetchrow($query_id);
+			return $cache->sql_fetchrow($safe_query_id);
 		}
 
 		if (!$query_id)
@@ -271,9 +284,9 @@ class mssqlnative extends \phpbb\db\driver\mssql_base
 	}
 
 	/**
-	* {@inheritDoc}
-	*/
-	function sql_nextid()
+	 * {@inheritdoc}
+	 */
+	public function sql_last_inserted_id()
 	{
 		$result_id = @sqlsrv_query($this->db_connect_id, 'SELECT @@IDENTITY');
 
@@ -302,14 +315,15 @@ class mssqlnative extends \phpbb\db\driver\mssql_base
 			$query_id = $this->query_result;
 		}
 
-		if ($cache && !is_object($query_id) && $cache->sql_exists($query_id))
+		$safe_query_id = $this->clean_query_id($query_id);
+		if ($cache && $cache->sql_exists($safe_query_id))
 		{
-			return $cache->sql_freeresult($query_id);
+			return $cache->sql_freeresult($safe_query_id);
 		}
 
-		if (isset($this->open_queries[(int) $query_id]))
+		if (isset($this->open_queries[$safe_query_id]))
 		{
-			unset($this->open_queries[(int) $query_id]);
+			unset($this->open_queries[$safe_query_id]);
 			return sqlsrv_free_stmt($query_id);
 		}
 

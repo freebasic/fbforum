@@ -38,7 +38,7 @@ $dbms = $phpbb_config_php_file->convert_30_dbms_to_31($dbms);
 $convertor_data = array(
 	'forum_name'	=> 'phpBB 2.0.x',
 	'version'		=> '1.0.3',
-	'phpbb_version'	=> '3.3.10',
+	'phpbb_version'	=> '3.3.15',
 	'author'		=> '<a href="https://www.phpbb.com/">phpBB Limited</a>',
 	'dbms'			=> $dbms,
 	'dbhost'		=> $dbhost,
@@ -901,6 +901,7 @@ if (!$get_info)
 				array('user_email',				'users.user_email',					'strtolower'),
 				array('user_birthday',			((defined('MOD_BIRTHDAY')) ? 'users.user_birthday' : ''),	'phpbb_get_birthday'),
 				array('user_lastvisit',			'users.user_lastvisit',				'intval'),
+				array('user_last_active',		'users.user_lastvisit',				'intval'),
 				array('user_lastmark',			'users.user_lastvisit',				'intval'),
 				array('user_lang',				$config['default_lang'],			''),
 				array('',						'users.user_lang',					''),

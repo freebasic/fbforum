@@ -2084,7 +2084,7 @@
                 ""
             ],
             "field_validation": [
-                "VCHAR_UNI:64",
+                "VCHAR_UNI:128",
                 ""
             ],
             "field_required": [
@@ -2757,7 +2757,7 @@
                 0
             ],
             "topic_views": [
-                "UINT",
+                "ULINT",
                 0
             ],
             "topic_status": [
@@ -3159,6 +3159,10 @@
                 "TIMESTAMP",
                 0
             ],
+            "user_last_active": [
+                "TIMESTAMP",
+                0
+            ],
             "user_lastmark": [
                 "TIMESTAMP",
                 0
@@ -3342,6 +3346,10 @@
             "user_actkey": [
                 "VCHAR:32",
                 ""
+            ],
+            "user_actkey_expiration": [
+                "TIMESTAMP",
+                0
             ],
             "reset_token": [
                 "VCHAR:64",

@@ -210,18 +210,18 @@ function user_add($user_row, $cp_data = false, $notifications_data = null)
 
 	// These are the additional vars able to be specified
 	$additional_vars = array(
-		'user_permissions'	=> '',
-		'user_timezone'		=> $config['board_timezone'],
-		'user_dateformat'	=> $config['default_dateformat'],
-		'user_lang'			=> $config['default_lang'],
-		'user_style'		=> (int) $config['default_style'],
-		'user_actkey'		=> '',
-		'user_ip'			=> '',
-		'user_regdate'		=> time(),
-		'user_passchg'		=> time(),
-		'user_options'		=> 230271,
+		'user_permissions'			=> '',
+		'user_timezone'				=> $config['board_timezone'],
+		'user_dateformat'			=> $config['default_dateformat'],
+		'user_lang'					=> $config['default_lang'],
+		'user_style'				=> (int) $config['default_style'],
+		'user_actkey'				=> '',
+		'user_ip'					=> '',
+		'user_regdate'				=> time(),
+		'user_passchg'				=> time(),
+		'user_options'				=> 230271,
 		// We do not set the new flag here - registration scripts need to specify it
-		'user_new'			=> 0,
+		'user_new'					=> 0,
 
 		'user_inactive_reason'	=> 0,
 		'user_inactive_time'	=> 0,
@@ -2758,6 +2758,28 @@ function group_user_add($group_id, $user_id_ary = false, $username_ary = false, 
 	{
 		return 'GROUP_USERS_EXIST';
 	}
+
+	/**
+	 * Event before users are added to a group
+	 *
+	 * @event core.group_add_user_before
+	 * @var	int		group_id		ID of the group to which users are added
+	 * @var	string 	group_name		Name of the group
+	 * @var	array	user_id_ary		IDs of the users to be added
+	 * @var	array	username_ary	Names of the users to be added
+	 * @var	int		pending			Pending setting, 1 if user(s) added are pending
+	 * @var	array	add_id_ary		IDs of the users to be added who are not members yet
+	 * @since 3.3.15-RC1
+	 */
+	$vars = array(
+		'group_id',
+		'group_name',
+		'user_id_ary',
+		'username_ary',
+		'pending',
+		'add_id_ary',
+	);
+	extract($phpbb_dispatcher->trigger_event('core.group_add_user_before', compact($vars)));
 
 	$db->sql_transaction('begin');
 

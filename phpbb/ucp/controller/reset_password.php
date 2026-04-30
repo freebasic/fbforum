@@ -242,7 +242,7 @@ class reset_password
 
 				$sql_ary = [
 					'reset_token'				=> $reset_token,
-					'reset_token_expiration'	=> strtotime('+1 day'),
+					'reset_token_expiration'	=> $this->user::get_token_expiration(),
 				];
 
 				$sql = 'UPDATE ' . $this->users_table . '
@@ -272,7 +272,7 @@ class reset_password
 						], false)
 				]);
 
-				$messenger->send($user_row['user_notify_type']);
+				$messenger->send(NOTIFY_EMAIL);
 
 				return $this->helper->message($message);
 			}
@@ -407,6 +407,7 @@ class reset_password
 			{
 				$sql_ary = [
 					'user_password'				=> $this->passwords_manager->hash($data['new_password']),
+					'user_passchg'				=> time(),
 					'user_login_attempts'		=> 0,
 					'reset_token'				=> '',
 					'reset_token_expiration'	=> 0,
@@ -415,7 +416,7 @@ class reset_password
 							SET ' . $this->db->sql_build_array('UPDATE', $sql_ary) . '
 							WHERE user_id = ' . (int) $user_row['user_id'];
 				$this->db->sql_query($sql);
-				$this->user->reset_login_keys();
+				$this->user->reset_login_keys($user_row['user_id']);
 				$this->log->add('user', $user_row['user_id'], $this->user->ip, 'LOG_USER_NEW_PASSWORD', false, [
 					'reportee_id' => $user_row['user_id'],
 					$user_row['username']
