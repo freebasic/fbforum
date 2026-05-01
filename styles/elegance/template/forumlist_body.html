@@ -89,7 +89,7 @@
 							<!-- ENDIF -->
 						</div>
 						{% endif %}
-							<!-- IF not forumrow.S_IS_LINK and forumrow.LAST_POST_TIME -->
+							<!-- IF $MOBILE_FORUMS_LASTPOST != 0 and not forumrow.S_IS_LINK and forumrow.LAST_POST_TIME -->
 							<div class="forum-lastpost" style="display: none;">
 								<span><strong>{L_LAST_POST}{L_COLON}</strong> <a href="{forumrow.U_LAST_POST}" title="{forumrow.LAST_POST_SUBJECT}" class="lastsubject">{forumrow.LAST_POST_SUBJECT_TRUNCATED}</a></span>
 								<span>{L_POST_BY_AUTHOR} <!-- EVENT forumlist_body_last_poster_username_prepend -->{forumrow.LAST_POSTER_FULL}<!-- EVENT forumlist_body_last_poster_username_append -->, {forumrow.LAST_POST_TIME}</span>

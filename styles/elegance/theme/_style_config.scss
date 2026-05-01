@@ -18,7 +18,7 @@ $profile-side:							left !default;	// left or right
 $post-margin:							($profile-width + 10px) !default;
 
 $use-wrapper:							true !default;	// true or false
-$max-width:								1280px !default;	// Maximum width. Set to "none" to make layout fluid
+$max-width:								1175px !default;	// Maximum width. Set to "none" to make layout fluid
 
 $split-forums:							false !default;	// Changes layout of forums list. Values are true or false
 
@@ -68,7 +68,7 @@ $forum-link-font-family:				"Droid Sans","Open Sans","Trebuchet MS",Helvetica,Ar
 
 $forum-list-column-font-size:			$font-size + 1px !default;
 $forum-list-last-column-font-size:		$font-size !default;
-$forum-list-description-font-size:		$font-size + 2px !default;
+$forum-list-description-font-size:		$font-size + 1px !default;
 
 $topic-link-font-size:					$font-size + 4px !default;
 $topic-link-font-family:				$forum-link-font-family !default;
@@ -111,8 +111,9 @@ $white-color:							#fff !default;		// Opposite of $black-color
 
 // Page colors
 $page-background:						#f0f0f0 !default;	// HTML element
-$content-background:					#e4e4e4 !default;	// Page inside content wrapper
-$content-border-color:					#e4e4e4 !default;	// Border color for content wrapper
+$content-background:					#e6e6e6 !default;	// Page inside content wrapper
+$content-border-color:					#e6e6e6 !default;	// Border color for content wrapper
+$content-border-shadow:					0 -1px 4px #e0e0e0 inset !default;	// Shadow on the desktop for content wrapper
 
 // Primary colors
 $primary-color:							#3462a0 !default;	// Main color, used for links and stuff
