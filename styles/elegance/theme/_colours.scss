@@ -88,6 +88,13 @@ hr {
 		border-color: $content-border-color;
 	}
 }
+@media (min-width: 701px) {
+    #wrap {
+    	@if $use-wrapper {
+    		box-shadow: $content-border-shadow;
+    	}
+    }
+}
 
 .headerbar {
 	color: $header-text;
