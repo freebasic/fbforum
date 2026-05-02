@@ -2140,10 +2140,14 @@ ul.topiclist dd {
   box-sizing: border-box;
 }
 ul.topiclist dfn {
-  display: none;
+  border: 0;
   position: absolute;
-  left: -999px;
-  width: 990px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
 }
 .forum-image {
   float: left;
@@ -2341,7 +2345,6 @@ dd.option {
 }
 .forum-description {
   font-size: 13px;
-  padding-top: 2px;
 }
 .forum-statistics {
   font-size: 11px;
@@ -4727,6 +4730,11 @@ hr {
 #wrap {
   background-color: #e4e4e4;
   border-color: #e4e4e4;
+}
+@media (min-width: 701px) {
+  #wrap {
+    box-shadow: 0 -1px 4px #e0e0e0 inset;
+  }
 }
 .headerbar {
   color: #141414;

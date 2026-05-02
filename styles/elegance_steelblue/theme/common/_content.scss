@@ -114,10 +114,14 @@ ul.topiclist dd {
 
 ul.topiclist dfn {
 	// Labels for post/view counts
-	display: none;
+	border: 0;
 	position: absolute;
-	left: -999px;
-	width: 990px;
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+	width: 1px;
+	height: 1px;
+	margin: -1px;
+	padding: 0;
 }
 
 .forum-image {
@@ -373,7 +377,6 @@ dd.option {
 // ----------------------
 .forum-description {
 	font-size: $forum-list-description-font-size;
-	padding-top: 2px;
 }
 
 .forum-statistics {

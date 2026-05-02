@@ -1,4 +1,5 @@
-﻿/*
+@charset "UTF-8";
+/*!
 	DO NOT EDIT stylesheet.css!
 
 	Edit .scss files instead. See http://www.artodia.com/phpbb-31-tutorials/compile-theme/
@@ -153,10 +154,10 @@ ol ol ul, ol ul ul, ul ol ul, ul ul ul {
 .page-width {
   box-sizing: border-box;
   margin: 0 auto;
-  max-width: 1280px;
+  max-width: 1175px;
   min-width: 625px;
 }
-@media (max-width: 1304px) {
+@media (max-width: 1199px) {
   .page-width {
     margin: 0 12px;
   }
@@ -602,12 +603,12 @@ ol ol ul, ol ul ul, ul ol ul, ul ul ul {
 .navbar .inner.static > .static-inner {
   box-sizing: border-box;
   margin: 0 auto;
-  max-width: 1280px;
+  max-width: 1175px;
   min-width: 625px;
   padding-top: 0 !important;
   padding-bottom: 0 !important;
 }
-@media (max-width: 1304px) {
+@media (max-width: 1199px) {
   .navbar .inner.static > .static-inner {
     margin: 0 12px;
   }
@@ -2139,10 +2140,14 @@ ul.topiclist dd {
   box-sizing: border-box;
 }
 ul.topiclist dfn {
-  display: none;
+  border: 0;
   position: absolute;
-  left: -999px;
-  width: 990px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
 }
 .forum-image {
   float: left;
@@ -2339,8 +2344,7 @@ dd.option {
   list-style-position: inside;
 }
 .forum-description {
-  font-size: 13px;
-  padding-top: 2px;
+  font-size: 12px;
 }
 .forum-statistics {
   font-size: 11px;
@@ -4673,7 +4677,7 @@ html, body {
   background-color: #f0f0f0;
 }
 html.simple, body.simple {
-  background-color: #e4e4e4;
+  background-color: #e6e6e6;
 }
 h1, p.sitename {
   color: #141414;
@@ -4694,8 +4698,8 @@ h3 a:hover {
   color: #b93329;
 }
 hr {
-  border-color: #fefefe;
-  border-top-color: #cbcbcb;
+  border-color: white;
+  border-top-color: #cdcdcd;
 }
 /* Post body links */
 .postlink {
@@ -4703,8 +4707,8 @@ hr {
   color: #3462a0;
 }
 .postlink:visited {
-  border-bottom-color: #5b5b5b;
-  color: #5b5b5b;
+  border-bottom-color: #5c5c5c;
+  color: #5c5c5c;
 }
 .postlink:hover {
   background-color: #dbdbdb;
@@ -4724,14 +4728,19 @@ hr {
   box-shadow: none;
 }
 #wrap {
-  background-color: #e4e4e4;
-  border-color: #e4e4e4;
+  background-color: #e6e6e6;
+  border-color: #e6e6e6;
+}
+@media (min-width: 701px) {
+  #wrap {
+    box-shadow: 0 -1px 4px #e0e0e0 inset;
+  }
 }
 .headerbar {
   color: #141414;
 }
 .breadcrumbs .crumb:before {
-  color: #5b5b5b;
+  color: #5c5c5c;
 }
 .navbar {
   box-shadow: 0 0 1px 1px rgba(255, 255, 255, 0.5) inset, 0 0 3px 1px rgba(128, 128, 128, 0.1) inset, 1px 1px 2px rgba(0, 0, 0, 0.1);
@@ -4766,14 +4775,14 @@ hr {
 }
 .navbar .nav-tabs .tab.selected {
   color: #3462a0;
-  background-color: #e4e4e4;
+  background-color: #e6e6e6;
   background-image: -webkit-linear-gradient(top, rgba(255, 255, 255, 0.5) 0, rgba(255, 255, 255, 0) 100%);
   background-image: linear-gradient(to bottom, rgba(255, 255, 255, 0.5) 0, rgba(255, 255, 255, 0) 100%);
   filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#80FFFFFF', endColorstr='#00FFFFFF');
 }
 .navbar .nav-tabs .tab:hover, .navbar .nav-tabs .tab.dropdown-visible {
   color: #b93329;
-  background-color: #e4e4e4;
+  background-color: #e6e6e6;
   background-image: -webkit-linear-gradient(top, rgba(255, 255, 255, 0.5) 0, rgba(255, 255, 255, 0) 100%);
   background-image: linear-gradient(to bottom, rgba(255, 255, 255, 0.5) 0, rgba(255, 255, 255, 0) 100%);
   filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#80FFFFFF', endColorstr='#00FFFFFF');
@@ -4816,7 +4825,7 @@ table.zebra-list tr:nth-child(even) td, ul.zebra-list li:nth-child(even) {
 }
 .bg3.panel {
   background: transparent none;
-  background-color: rgba(228, 228, 228, 0.3);
+  background-color: rgba(230, 230, 230, 0.3);
   border-top-color: #f8f8f8;
 }
 .bg3.panel:before, .bg3.panel:after {
@@ -4839,10 +4848,10 @@ ul.navlinks {
   color: #b93329;
 }
 .forum-statistics {
-  color: #5b5b5b;
+  color: #5c5c5c;
 }
 .forum-lastpost {
-  color: #5b5b5b;
+  color: #5c5c5c;
 }
 .forum-lastpost span:before {
   opacity: 0.5;
@@ -4886,7 +4895,7 @@ table.table1 tbody td {
 table.table1 tbody th {
   border-bottom-color: #e7e7e7;
   color: #000;
-  background-color: #e4e4e4;
+  background-color: #e6e6e6;
 }
 table.info tbody th {
   color: #000;
@@ -4946,7 +4955,7 @@ dl.details dd {
   background-color: #f4f4f4;
 }
 .jumpbox-forum-link:hover {
-  background-color: #e4e4e4;
+  background-color: #e6e6e6;
 }
 .jumpbox .dropdown .pointer-inner {
   border-color: #f4f4f4 transparent;
@@ -4955,7 +4964,7 @@ dl.details dd {
   background-color: #f4f4f4;
 }
 .jumpbox-sub-link:hover {
-  background-color: #e4e4e4;
+  background-color: #e6e6e6;
 }
 .pagination li a {
   color: #3462a0;
@@ -4987,7 +4996,7 @@ dl.details dd {
   color: #b93329;
 }
 .copyright {
-  color: #5b5b5b;
+  color: #5c5c5c;
 }
 .error {
   color: #b93329;
@@ -5002,7 +5011,7 @@ li.reported:hover {
   background-color: #f5e9e9;
 }
 div.rules {
-  background-color: #dec9c8;
+  background-color: #dfcbca;
   color: #b93329;
 }
 p.post-notice {
@@ -5026,7 +5035,7 @@ p.post-notice.reported:before, p.post-notice.error:before {
   color: #b93329;
 }
 .topic-status.sticky {
-  color: #5b5b5b;
+  color: #5c5c5c;
 }
 a {
   color: #3462a0;
@@ -5035,7 +5044,7 @@ a:hover {
   color: #b93329;
 }
 a.time {
-  color: #a0a0a0;
+  color: #a1a1a1;
 }
 a.time:hover {
   color: #b93329;
@@ -5050,7 +5059,7 @@ a.time:hover {
   background-color: #f4f4f4;
 }
 a.top, a.top2 {
-  color: #5b5b5b;
+  color: #5c5c5c;
 }
 a.top:hover, a.top2:hover {
   color: #b93329;
@@ -5082,7 +5091,7 @@ li.row {
   border-bottom-color: #e7e7e7;
 }
 li.row .forum-lastpost strong, li.row .subforums-list strong {
-  color: #5b5b5b;
+  color: #5c5c5c;
 }
 li.row strong {
   color: #000;
@@ -5199,7 +5208,7 @@ fieldset.polls dd div {
   color: #000;
 }
 .online-ribbon span {
-  background-color: #e4e4e4;
+  background-color: #e6e6e6;
   color: #b93329;
 }
 .reported .online-ribbon span {
@@ -5262,7 +5271,7 @@ dd.profile-warnings {
   color: #f5e0df !important;
 }
 .buttons > .dropdown-select {
-  color: #5b5b5b;
+  color: #5c5c5c;
 }
 .dropdown-select:after {
   border-color: #c6c6c6;
@@ -5314,7 +5323,7 @@ dd.profile-warnings {
   color: #b93329;
 }
 .icon-search-self:after {
-  color: #a0a0a0;
+  color: #a1a1a1;
 }
 .icon-home.breadcrumbs:after {
   color: #3462a0;
@@ -5323,7 +5332,7 @@ dd.profile-warnings {
   color: #b93329;
 }
 .icon-time:after {
-  color: #a0a0a0;
+  color: #a1a1a1;
 }
 /* Profile & navigation icons */
 .pm-icon {
@@ -5584,7 +5593,7 @@ dd.profile-warnings {
   color: #141414;
 }
 .panel-container .panel {
-  background: #ececec;
+  background: #ededed;
   box-shadow: none;
   border-width: 0;
   filter: progid:DXImageTransform.Microsoft.gradient(enabled=false);
@@ -5646,7 +5655,7 @@ label {
   color: #141414;
 }
 option.disabled-option {
-  color: #5b5b5b;
+  color: #5c5c5c;
 }
 dd label {
   color: #141414;
@@ -5664,10 +5673,10 @@ fieldset.fields2 dl:hover dt label {
   color: #141414;
 }
 #message-box textarea.drag-n-drop {
-  outline-color: rgba(160, 160, 160, 0.5);
+  outline-color: rgba(161, 161, 161, 0.5);
 }
 #message-box textarea.drag-n-drop-highlight {
-  outline-color: rgba(91, 91, 91, 0.5);
+  outline-color: rgba(92, 92, 92, 0.5);
 }
 .inputbox, select {
   background-color: #fff;
@@ -5739,10 +5748,10 @@ input.button1:focus, input.button2:focus, input.button3:focus {
   color: #3462a0;
 }
 input.disabled {
-  color: #5b5b5b;
+  color: #5c5c5c;
 }
 .phpbb_alert {
-  background-color: #e4e4e4;
+  background-color: #e6e6e6;
   border-color: #e7e7e7;
 }
 .phpbb_alert .alert_close:before {
@@ -5752,7 +5761,7 @@ input.disabled {
   color: #b93329;
 }
 .phpbb_alert .alert_close:after {
-  color: #e4e4e4;
+  color: #e6e6e6;
 }
 .darken {
   background-color: #000;
@@ -5836,12 +5845,12 @@ ul.linklist li.responsive-menu a.responsive-menu-link:hover:before, ul.linklist 
   color: #3462a0;
 }
 .notification_list li.bg3 {
-  background-color: #e0d2d1;
+  background-color: #e2d4d3;
   color: #b93329;
 }
 .notification_list li.bg3, .panel-container .notification_list li.bg3 {
-  border-top-color: #f5f0ef;
-  border-bottom-color: #cbb4b3;
+  border-top-color: #f6f2f2;
+  border-bottom-color: #ceb6b4;
 }
 .notification_list li.bg3 strong {
   color: #252525;
@@ -5850,7 +5859,7 @@ ul.linklist li.responsive-menu a.responsive-menu-link:hover:before, ul.linklist 
   color: inherit;
 }
 .notification_list li.bg3 p.notification-time, .notification_list li.bg3 p.notifications_time {
-  color: #a97b77;
+  color: #a97b78;
 }
 .notification_list li.bg3 a.mark_read {
   background-color: white;
@@ -5904,7 +5913,7 @@ ul.linklist li.responsive-menu a.responsive-menu-link:hover:before, ul.linklist 
   }
 }
 .imageset.icon_topic_attach:after {
-  color: #5b5b5b;
+  color: #5c5c5c;
 }
 .imageset.icon_topic_poll:after {
   color: #7e848d;

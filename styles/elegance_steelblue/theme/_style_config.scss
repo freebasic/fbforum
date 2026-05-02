@@ -113,6 +113,7 @@ $white-color:							#fff !default;		// Opposite of $black-color
 $page-background:						#f0f0f0 !default;	// HTML element
 $content-background:					#e4e4e4 !default;	// Page inside content wrapper
 $content-border-color:					#e4e4e4 !default;	// Border color for content wrapper
+$content-border-shadow:					0 -1px 4px #e0e0e0 inset !default;	// Shadow on the desktop for content wrapper
 
 // Primary colors
 $primary-color:							#5d6578 !default;	// Main color, used for links and stuff
